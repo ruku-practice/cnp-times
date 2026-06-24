@@ -6,16 +6,22 @@
     'ルナ': 'luna.png', 'ヤーマ': 'yama.png', 'マカミ': 'makami.png', 'トワ': 'towa.png',
     'セツナ': 'setsuna.png', 'エマ': 'ema.png', 'タルト': 'taruto.png'
   };
-  // 各キャラの供給数（リスト率の母数。エマ・タルト登場後の現在の数値）
+  // 各キャラの供給数（リスト率の母数）。
+  // CHAR_SUPPLY = 現在（エマ・タルト登場後）、OLD_CHAR_SUPPLY = それ以前（旧スプレッドシート計算式の母数）
   const CHAR_SUPPLY = {
     'オロチ': 3148, 'ミタマ': 3593, 'ナルカミ': 3348, 'リーリー': 4389, 'ルナ': 1950, 'ヤーマ': 1618,
     'マカミ': 1345, 'トワ': 924, 'セツナ': 914, 'エマ': 495, 'タルト': 496
   };
+  const OLD_CHAR_SUPPLY = {
+    'オロチ': 3468, 'ミタマ': 3732, 'ナルカミ': 3444, 'リーリー': 4560, 'ルナ': 1977, 'ヤーマ': 1651, 'マカミ': 1394
+  };
   // 当該日が「現在の母数」を適用できる時期か（エマが存在する＝floorが入っている）
   function emaExists(i) { const e = HISTORY.chars['エマ']; return !!(e && e.floor[i] != null); }
   function charRate(name, listed, i) {
-    if (listed == null || !emaExists(i) || !CHAR_SUPPLY[name]) return null;
-    return (listed / CHAR_SUPPLY[name] * 100).toFixed(2) + '%';
+    if (listed == null) return null;
+    const supply = emaExists(i) ? CHAR_SUPPLY[name] : OLD_CHAR_SUPPLY[name];
+    if (!supply) return null;
+    return (listed / supply * 100).toFixed(2) + '%';
   }
 
   // ---------- Theme ----------
