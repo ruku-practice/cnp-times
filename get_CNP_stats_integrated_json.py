@@ -1246,6 +1246,58 @@ def build_site_data(base_dir=None):
         except Exception as e:
             print(f"  ! history_early.json の結合に失敗: {e}")
 
+    # --- 累計取引量(volume)のクリーニング ---
+    # 本来は単調増加（コントラクト移行で稀にリセット）。OpenSea由来の異常値を除去する:
+    #  ・スパイク（直近の3倍超 かつ +3000ETH超）→ 直前値を維持
+    #  ・一時的な下振れ（誤値）→ 直前値を維持（後で元水準に戻るものは異常とみなす）
+    #  ・恒久的な大幅下落（その後も元水準に戻らない）→ 正当なリセットとして採用
+    def clean_cumulative(series):
+        n = len(series)
+        s = list(series)
+        # pass1: 異常スパイク除去（ロバストな上限=99パーセンタイル×3 を超える値は直前値に）
+        vals = sorted(v for v in s if v is not None)
+        if vals:
+            p99 = vals[min(len(vals) - 1, int(len(vals) * 0.99))]
+            ceil = max(p99 * 3, 100)
+            prev = None
+            for i in range(n):
+                if s[i] is None:
+                    continue
+                if s[i] > ceil and prev is not None:
+                    s[i] = prev
+                else:
+                    prev = s[i]
+        # pass2: 大きな下振れ（誤値）と正当なリセットだけを処理し、通常のノイズは原値を維持。
+        #   running = 直近の妥当値（水準）。強制的な単調化はしない（高ノイズが床になるのを防ぐ）。
+        out = [None] * n
+        running = None
+        for i in range(n):
+            v = s[i]
+            if v is None:
+                out[i] = running
+                continue
+            if running is None or running == 0:
+                running = v
+                out[i] = v
+                continue
+            if v < running * 0.2:  # 直近水準から大きく下振れ
+                recovers = any(
+                    (s[j] is not None and s[j] >= running * 0.8)
+                    for j in range(i + 1, n)
+                )
+                if recovers:
+                    out[i] = running          # 後で元水準に戻る＝誤値 → 直近水準を維持
+                else:
+                    running = v               # 戻らない＝正当なリセット
+                    out[i] = v
+            else:
+                out[i] = v                    # 通常値はそのまま（ノイズも保持）
+                running = v
+        return out
+
+    history["agg"]["volume"] = clean_cumulative(history["agg"]["volume"])
+    print("  ✓ volume クリーニング完了（スパイク/誤下振れ除去・リセット保持）")
+
     os.makedirs(os.path.join(base_dir, "data"), exist_ok=True)
     history_path = os.path.join(base_dir, "data", "history.json")
     with open(history_path, "w", encoding="utf-8") as f:
