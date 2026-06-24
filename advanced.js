@@ -91,7 +91,7 @@
     const jpyOf = (v) => (v != null && ej != null) ? `¥${Math.round(v * ej).toLocaleString('ja-JP')}` : '';
     const dayVol = H.agg.day_volume[li];      // 日次トータル販売額（NFTT）
     const totalVol = H.agg.volume[li];        // 累計取引量（補正済み）
-    const topOffer = H.top_offer[li];         // トップオファー（OpenSea）
+    const O = OFFERS || {};                    // オファー情報（NFTT）
     $('today-cards').innerHTML = [
       card('最安フロア (ETH)', p.floor.eth, p.floor.jpy ? `¥${p.floor.jpy}` : '', p.floor.ethDiff),
       card('平均販売価格 (ETH)', p.avg.eth, p.avg.jpy ? `¥${p.avg.jpy}` : '', p.avg.ethDiff),
@@ -101,7 +101,9 @@
       card('オーナー数', p.owners.count, '', p.owners.diff),
       card('出品数', p.listed.count, p.listed.rate ? `率 ${p.listed.rate}` : '', p.listed.diff),
       card('セールス数 (24h)', p.owners.sales, '', null),
-      card('トップオファー (WETH)', eth(topOffer, 4), jpyOf(topOffer), null),
+      card('トップオファー (WETH)', eth(O.top_offer, 3), jpyOf(O.top_offer), null),
+      card('オファー数 (口)', O.offer_count != null ? nf(O.offer_count) : '--', '', null),
+      card('オファー総額 (WETH)', eth(O.offer_total, 3), jpyOf(O.offer_total), null),
       card('ETH価格', p.refEth.price, '', p.refEth.diff),
       card('USD価格', p.refUsd.price, '', p.refUsd.diff),
     ].join('');
@@ -266,7 +268,6 @@
     });
     // reference
     h += `<tr class="seclabel"><td>参考</td><td>価格</td><td>前日差</td><td>円換算</td><td></td></tr>`;
-    h += `<tr><td>トップオファー (WETH)</td><td class="mono">${eth(H.top_offer[i], 4)}</td>${diffCell(H.top_offer[i], prev != null ? H.top_offer[prev] : null, 4)}<td class="mono">${yen(jv(H.top_offer[i]))}</td><td></td></tr>`;
     h += `<tr><td>ETH価格 (円)</td><td class="mono">${yen(H.eth_jpy[i])}</td>${diffCell(H.eth_jpy[i], prev != null ? H.eth_jpy[prev] : null, 0, true)}<td></td><td></td></tr>`;
     h += `<tr><td>USD価格 (円)</td><td class="mono">${H.usd[i] == null ? '--' : '¥' + Number(H.usd[i]).toFixed(2)}</td>${diffCell(H.usd[i], prev != null ? H.usd[prev] : null, 2)}<td></td><td></td></tr>`;
     h += `</tbody></table>`;
@@ -297,10 +298,10 @@
   }
 
   // ---------- boot ----------
-  let HISTORY = null;
-  Promise.all([fetchJSON('html2_data.json'), fetchJSON('data/history.json')])
-    .then(([html2, history]) => {
-      HISTORY = history;
+  let HISTORY = null, OFFERS = null;
+  Promise.all([fetchJSON('html2_data.json'), fetchJSON('data/history.json'), fetchJSON('data/offers.json').catch(() => null)])
+    .then(([html2, history, offers]) => {
+      HISTORY = history; OFFERS = offers;
       HISTORY.dates.forEach((d, i) => DATE_IDX[d] = i);
       $('loader').classList.add('hidden');
       $('main').classList.remove('hidden');

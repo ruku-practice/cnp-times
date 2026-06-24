@@ -441,6 +441,70 @@ class CNPStatsIntegrated:
                 'characters': {c: {'count': 0, 'min_price': 0.0} for c in self.characters}
             }
 
+    def get_nftt_offers(self):
+        """NFTTのオファーページから トップオファー額・オファー数(口数合計)・オファー総額 を取得。
+        ページ構成: テーブル各行 = [オファー額(単価), 口数, 合計額]（.price が単価と合計額の2つ）。
+        """
+        try:
+            self.reset_page()
+            print("\n" + "=" * 60)
+            print("=== NFTT: オファー情報取得 ===")
+            print("=" * 60)
+            url = "https://cryptoninja.nftt.market/offer?collection=0x138A5C693279b6Cd82F48d4bEf563251Bc15ADcE"
+            self.page.goto(url, wait_until='domcontentloaded')
+            try:
+                self.page.wait_for_load_state('networkidle', timeout=30000)
+            except:
+                pass
+            time.sleep(12)
+
+            def _first_num(s):
+                s = (s or '').replace(',', '').replace('WETH', '').replace('ETH', '').replace('¥', '')
+                m = re.search(r'[\d.]+', s)
+                return float(m.group(0)) if m else None
+
+            offers = []  # (price, qty, total)
+            for row in self.page.locator('tr').all():
+                prices = row.locator('.price').all()
+                if len(prices) < 2:
+                    continue
+                try:
+                    price = _first_num(prices[0].locator('div').first.text_content())
+                    total = _first_num(prices[-1].locator('div').first.text_content())
+                    if price and total:
+                        qty = int(round(total / price)) if price else 1
+                        offers.append((price, qty, total))
+                except Exception:
+                    continue
+
+            result = {'top_offer': 0.0, 'offer_count': 0, 'offer_total': 0.0}
+            if offers:
+                result['top_offer'] = max(o[0] for o in offers)
+                result['offer_count'] = sum(o[1] for o in offers)
+                result['offer_total'] = round(sum(o[2] for o in offers), 4)
+            print(f"NFTTオファー集計: トップ={result['top_offer']} / 口数={result['offer_count']} / 総額={result['offer_total']} WETH")
+            return result
+        except Exception as e:
+            print(f"✗ NFTT オファー情報取得エラー: {str(e)}")
+            return {'top_offer': 0.0, 'offer_count': 0, 'offer_total': 0.0}
+
+    def save_offers_json(self, offers):
+        """オファー情報を data/offers.json に保存（サイトの本日カード用）。"""
+        import json
+        from datetime import datetime
+        try:
+            data_dir = os.path.join(self.base_dir, "data")
+            os.makedirs(data_dir, exist_ok=True)
+            payload = dict(offers)
+            payload['fetched_at'] = datetime.now().isoformat(timespec='seconds')
+            payload['date'] = datetime.now().strftime('%Y-%m-%d')
+            path = os.path.join(data_dir, "offers.json")
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            print(f"  ✓ offers.json を保存しました: {path}")
+        except Exception as e:
+            print(f"  ✗ offers.json 保存エラー: {str(e)}")
+
     def get_os_header_stats(self):
         """OpenSeaからヘッダー情報を取得"""
         try:
@@ -883,7 +947,11 @@ class CNPStatsIntegrated:
             
             # 2. NFTT Listings (Count, Floor)
             nftt_listings = self.get_nftt_listings()
-            
+
+            # 2b. NFTT Offers (Top Offer, 口数, 総額) → data/offers.json
+            nftt_offers = self.get_nftt_offers()
+            self.save_offers_json(nftt_offers)
+
             # 3. OpenSea Header
             os_header = self.get_os_header_stats()
             
@@ -1231,6 +1299,19 @@ if __name__ == "__main__":
     if "--build-only" in sys.argv:
         build_site_data()
         print("\n✓ build_site_data 完了（build-only）")
+        sys.exit(0)
+
+    # `--offers-only` で NFTT オファーだけ取得して data/offers.json を更新
+    if "--offers-only" in sys.argv:
+        scraper = CNPStatsIntegrated()
+        scraper.setup_browser()
+        try:
+            offers = scraper.get_nftt_offers()
+            scraper.save_offers_json(offers)
+        finally:
+            if scraper.browser:
+                scraper.browser.close()
+        print("\n✓ offers 取得完了（offers-only）")
         sys.exit(0)
 
     print("="*60)
