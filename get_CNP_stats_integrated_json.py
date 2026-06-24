@@ -1034,6 +1034,36 @@ def build_site_data(base_dir=None):
         else:
             history["chars"][label] = {"floor": floors, "listed": listeds}
 
+    # --- 初期分(2022-06〜)を先頭に結合（data シートから一度抽出した静的ファイル）---
+    # floorprice シートは 2022-08-28 始まりなので、それ以前を history_early.json で補完する。
+    early_path = os.path.join(base_dir, "data", "history_early.json")
+    if os.path.exists(early_path):
+        try:
+            with open(early_path, "r", encoding="utf-8") as f:
+                early = json.load(f)
+            cutoff = history["dates"][0] if history["dates"] else None
+            sel = [i for i, d in enumerate(early["dates"]) if cutoff is None or d < cutoff]
+            if sel:
+                edates = [early["dates"][i] for i in sel]
+                def elabel(iso):
+                    y, mo, da = iso.split("-")
+                    return f"{int(mo)}月{int(da)}日"
+                elabels = [elabel(d) for d in edates]
+                blank = [None] * len(early["dates"])
+                for key in ("floor", "listed"):
+                    ev = [early["all"][key][i] for i in sel]
+                    history["all"][key] = ev + history["all"][key]
+                for name, ser in history["chars"].items():
+                    esrc = early["chars"].get(name, {})
+                    for key in ("floor", "listed"):
+                        col = esrc.get(key) or blank
+                        ser[key] = [col[i] for i in sel] + ser[key]
+                history["dates"] = edates + history["dates"]
+                history["labels"] = elabels + history["labels"]
+                print(f"  ✓ 初期分を結合: {len(sel)}日 ({edates[0]}〜{edates[-1]})")
+        except Exception as e:
+            print(f"  ! history_early.json の結合に失敗: {e}")
+
     os.makedirs(os.path.join(base_dir, "data"), exist_ok=True)
     history_path = os.path.join(base_dir, "data", "history.json")
     with open(history_path, "w", encoding="utf-8") as f:
