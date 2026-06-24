@@ -81,9 +81,10 @@
     };
   }
   function diffPill(s) { const t = txt(s); return t ? `<span class="d ${classifyDiff(t)}">${t}</span>` : ''; }
-  function card(k, vMain, vSmall, diff) {
+  function card(k, vMain, unit, vSmall, diff) {
+    const u = unit ? ` <span class="unit">${unit}</span>` : '';
     return `<div class="card"><div class="k">${k}</div>` +
-      `<div class="v mono">${vMain || '--'}${vSmall ? `<small>${vSmall}</small>` : ''}</div>` +
+      `<div class="v mono">${vMain || '--'}${u}${vSmall ? `<small>${vSmall}</small>` : ''}</div>` +
       (diff != null && txt(diff) !== '' ? `<div>${diffPill(diff)}</div>` : '') + `</div>`;
   }
   function renderToday(p) {
@@ -92,20 +93,24 @@
     const dayVol = H.agg.day_volume[li];      // 日次トータル販売額（NFTT）
     const totalVol = H.agg.volume[li];        // 累計取引量（補正済み）
     const O = OFFERS || {};                    // オファー情報（NFTT）
+    // CNP の情報（上段）
     $('today-cards').innerHTML = [
-      card('最安フロア (ETH)', p.floor.eth, p.floor.jpy ? `¥${p.floor.jpy}` : '', p.floor.ethDiff),
-      card('平均販売価格 (ETH)', p.avg.eth, p.avg.jpy ? `¥${p.avg.jpy}` : '', p.avg.ethDiff),
-      card('日次トータル販売額 (ETH)', eth(dayVol, 4), jpyOf(dayVol), null),
-      card('時価総額 (円)', p.marketcap.jpy, p.marketcap.eth ? `${p.marketcap.eth} ETH` : '', p.marketcap.jpyDiff),
-      card('累計取引量 (ETH)', nf(totalVol, 1), jpyOf(totalVol), null),
-      card('オーナー数', p.owners.count, '', p.owners.diff),
-      card('出品数', p.listed.count, p.listed.rate ? `率 ${p.listed.rate}` : '', p.listed.diff),
-      card('セールス数 (24h)', p.owners.sales, '', null),
-      card('トップオファー (WETH)', eth(O.top_offer, 3), jpyOf(O.top_offer), null),
-      card('オファー数 (口)', O.offer_count != null ? nf(O.offer_count) : '--', '', null),
-      card('オファー総額 (WETH)', eth(O.offer_total, 3), jpyOf(O.offer_total), null),
-      card('ETH価格', p.refEth.price, '', p.refEth.diff),
-      card('USD価格', p.refUsd.price, '', p.refUsd.diff),
+      card('最安フロア', p.floor.eth, 'ETH', p.floor.jpy ? `¥${p.floor.jpy}` : '', p.floor.ethDiff),
+      card('平均販売価格', p.avg.eth, 'ETH', p.avg.jpy ? `¥${p.avg.jpy}` : '', p.avg.ethDiff),
+      card('日次トータル販売額', eth(dayVol, 4), 'ETH', jpyOf(dayVol), null),
+      card('時価総額', p.marketcap.jpy, '円', p.marketcap.eth ? `${p.marketcap.eth} ETH` : '', p.marketcap.jpyDiff),
+      card('累計取引量', nf(totalVol, 1), 'ETH', jpyOf(totalVol), null),
+      card('オーナー数', p.owners.count, '', '', p.owners.diff),
+      card('出品数', p.listed.count, '', p.listed.rate ? `率 ${p.listed.rate}` : '', p.listed.diff),
+      card('セールス数 (24h)', p.owners.sales, '', '', null),
+      card('トップオファー', eth(O.top_offer, 3), 'WETH', jpyOf(O.top_offer), null),
+      card('オファー数', O.offer_count != null ? nf(O.offer_count) : '--', '口', '', null),
+      card('オファー総額', eth(O.offer_total, 3), 'WETH', jpyOf(O.offer_total), null),
+    ].join('');
+    // 参考レート（為替・下段）
+    $('today-ref-cards').innerHTML = [
+      card('ETH価格', p.refEth.price, '', '', p.refEth.diff),
+      card('USD価格', p.refUsd.price, '', '', p.refUsd.diff),
     ].join('');
     $('today-hint').textContent = p.date ? `（${p.date} ${p.time} 時点）` : '';
     $('meta-date').textContent = p.date || '';
