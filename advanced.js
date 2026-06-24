@@ -128,9 +128,29 @@
   const chartState = { target: 'ALL', metric: 'floor', cur: 'eth', days: 365 };
   function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
   function seriesFor(t) { return t === 'ALL' ? HISTORY.all : (HISTORY.chars[t] || { floor: [], listed: [] }); }
+  // 指標の定義: type(line/bar), cur(円換算対応), perChar(対象キャラ選択が効くか)
+  const METRICS = {
+    floor:      { label: 'フロア価格', type: 'line', cur: true,  perChar: true },
+    listed:     { label: '出品数',     type: 'line', cur: false, perChar: true },
+    sales:      { label: 'セールス数', type: 'bar',  cur: false, perChar: false },
+    day_volume: { label: 'セールス額', type: 'bar',  cur: true,  perChar: false },
+    volume:     { label: '累計取引量', type: 'line', cur: true,  perChar: false },
+    mcap:       { label: '時価総額',   type: 'line', cur: true,  perChar: false },
+  };
+  function metricSeries(metric) {
+    if (metric === 'floor' || metric === 'listed') return seriesFor(chartState.target)[metric] || [];
+    return HISTORY.agg[metric] || [];
+  }
+  const fmtYenAxis = (v) => {
+    const a = Math.abs(v);
+    if (a >= 1e8) return '¥' + (v / 1e8).toFixed(1) + '億';
+    if (a >= 1e4) return '¥' + Math.round(v / 1e4) + '万';
+    return '¥' + v;
+  };
   function renderChart() {
-    const s = seriesFor(chartState.target);
-    let dates = HISTORY.dates, floor = s.floor || [], listed = s.listed || [], ej = HISTORY.eth_jpy || [];
+    const m = METRICS[chartState.metric] || METRICS.floor;
+    const isBar = m.type === 'bar';
+    let dates = HISTORY.dates, vals = metricSeries(chartState.metric), ej = HISTORY.eth_jpy || [];
     let lo = 0, hi = dates.length;
     if (chartState.days === 'custom' && chartState.from && chartState.to) {
       lo = dates.findIndex(d => d >= chartState.from); if (lo < 0) lo = dates.length;
@@ -138,39 +158,36 @@
     } else if (typeof chartState.days === 'number' && chartState.days > 0 && dates.length > chartState.days) {
       lo = dates.length - chartState.days;
     }
-    dates = dates.slice(lo, hi); floor = floor.slice(lo, hi); listed = listed.slice(lo, hi); ej = ej.slice(lo, hi);
+    dates = dates.slice(lo, hi); vals = vals.slice(lo, hi); ej = ej.slice(lo, hi);
     const cEth = cssVar('--accent-2'), cJpy = cssVar('--accent'), grid = cssVar('--border'), tick = cssVar('--text-dim');
-    const datasets = [], scales = {
-      x: { grid: { color: grid }, ticks: { color: tick, maxTicksLimit: 8, font: { size: 10 } } }
-    };
+    const tgt = m.perChar ? chartState.target + ' ' : '';
+    const datasets = [], scales = { x: { grid: { color: grid }, ticks: { color: tick, maxTicksLimit: 8, font: { size: 10 } } } };
     const mk = (label, data, color, axis) => ({
-      label, data, borderColor: color, backgroundColor: color + '22', yAxisID: axis,
-      borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, tension: 0.25, fill: axis === 'y', spanGaps: true
+      label, data, borderColor: color, backgroundColor: isBar ? color + 'cc' : color + '22', yAxisID: axis,
+      borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, tension: 0.25, fill: !isBar && axis === 'y',
+      spanGaps: true, maxBarThickness: 18, borderRadius: 2
     });
-
-    if (chartState.metric === 'listed') {
-      datasets.push(mk(chartState.target + ' 出品数', listed, cJpy, 'y'));
-      scales.y = { grid: { color: grid }, ticks: { color: tick } };
-    } else {
+    if (m.cur) {
       const wantEth = chartState.cur === 'eth' || chartState.cur === 'both';
       const wantJpy = chartState.cur === 'jpy' || chartState.cur === 'both';
-      const jpyVals = floor.map((v, i) => (v != null && ej[i] != null) ? Math.round(v * ej[i]) : null);
+      const jpyVals = vals.map((v, i) => (v != null && ej[i] != null) ? Math.round(v * ej[i]) : null);
       if (wantEth) {
-        datasets.push(mk('フロア (ETH)', floor, cEth, 'y'));
+        datasets.push(mk(`${tgt}${m.label} (ETH)`, vals, cEth, 'y'));
         scales.y = { position: 'left', grid: { color: grid }, ticks: { color: cEth, callback: v => v + ' Ξ' } };
       }
       if (wantJpy) {
         const axis = (chartState.cur === 'both') ? 'y2' : 'y';
-        datasets.push(mk('フロア (円)', jpyVals, cJpy, axis));
-        const ax = { grid: { color: chartState.cur === 'both' ? 'transparent' : grid },
-          ticks: { color: cJpy, callback: v => '¥' + (v / 1000).toFixed(0) + 'k' } };
-        if (chartState.cur === 'both') { ax.position = 'right'; scales.y2 = ax; }
-        else scales.y = ax;
+        datasets.push(mk(`${tgt}${m.label} (円)`, jpyVals, cJpy, axis));
+        const ax = { grid: { color: chartState.cur === 'both' ? 'transparent' : grid }, ticks: { color: cJpy, callback: fmtYenAxis } };
+        if (chartState.cur === 'both') { ax.position = 'right'; scales.y2 = ax; } else scales.y = ax;
       }
+    } else {
+      datasets.push(mk(`${tgt}${m.label}`, vals, cJpy, 'y'));
+      scales.y = { grid: { color: grid }, ticks: { color: tick } };
     }
     if (chart) chart.destroy();
     chart = new Chart($('chart').getContext('2d'), {
-      type: 'line', data: { labels: dates, datasets },
+      type: m.type, data: { labels: dates, datasets },
       options: {
         responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
         plugins: {
@@ -180,6 +197,13 @@
         scales
       }
     });
+    updateChartControlStates();
+  }
+  function updateChartControlStates() {
+    const m = METRICS[chartState.metric] || {};
+    const sel = $('chart-target');
+    sel.disabled = !m.perChar; sel.style.opacity = m.perChar ? '1' : '0.4';
+    document.querySelectorAll('.btn.cur').forEach(b => { b.disabled = !m.cur; b.style.opacity = m.cur ? '' : '0.4'; });
   }
   function setupChartControls() {
     const sel = $('chart-target');
