@@ -857,6 +857,18 @@ class CNPStatsIntegrated:
                 print(f"  ✓ floorprice フルデータを保存しました: {json_path_floor_full}")
             except Exception as e:
                 print(f"  ✗ floorprice エクスポートエラー: {str(e)}")
+
+            # 3. eth_statsシートのエクスポート（全表の集計指標＝floorprice と同じ列構造）
+            #    eth_stats_full.json（gitignore）。build_site_data() が集計値・ETH/円レートを抽出する。
+            try:
+                eth_stats_data = self._get_all_values_with_retry('eth_stats')
+
+                json_path_eth_full = os.path.join(self.base_dir, "eth_stats_full.json")
+                with open(json_path_eth_full, 'w', encoding='utf-8') as f:
+                    json.dump(eth_stats_data, f, ensure_ascii=False, indent=2)
+                print(f"  ✓ eth_stats フルデータを保存しました: {json_path_eth_full}")
+            except Exception as e:
+                print(f"  ✗ eth_stats エクスポートエラー: {str(e)}")
                 
         except Exception as e:
             print(f"  ✗ JSON エクスポート処理全体でエラーが発生しました: {str(e)}")
@@ -978,8 +990,8 @@ def build_site_data(base_dir=None):
         entities.append((label, base + 1, base + 2))
         base += 3
 
-    # --- 列を「1日1点」に間引く（同じ日付文字列は最後の列を採用） ---
-    kept = []  # (col_idx, month, day, time_str)
+    # --- 列を「日ごと」にグループ化（同日の複数列＝intraday をまとめる）---
+    day_groups = []  # [month, day, last_time, [col_idx, ...]]
     for c in range(2, n_cols):
         d = (date_row[c] or "").strip() if c < len(date_row) else ""
         if not d:
@@ -989,25 +1001,25 @@ def build_site_data(base_dir=None):
             continue
         month, day = int(m.group(1)), int(m.group(2))
         t = (time_row[c] or "").strip() if c < len(time_row) else ""
-        if kept and kept[-1][1] == month and kept[-1][2] == day:
-            kept[-1] = (c, month, day, t)  # 同日なら最新列で上書き
+        if day_groups and day_groups[-1][0] == month and day_groups[-1][1] == day:
+            day_groups[-1][2] = t
+            day_groups[-1][3].append(c)
         else:
-            kept.append((c, month, day, t))
+            day_groups.append([month, day, t, [c]])
 
     # --- 年を推定して ISO 日付化（最新=実行日の年、過去へ遡って年跨ぎを補正） ---
-    iso_dates = [None] * len(kept)
-    if kept:
+    iso_dates = [None] * len(day_groups)
+    if day_groups:
         year = datetime.now().year
-        iso_dates[-1] = f"{year:04d}-{kept[-1][1]:02d}-{kept[-1][2]:02d}"
-        for i in range(len(kept) - 2, -1, -1):
-            m_old, m_new = kept[i][1], kept[i + 1][1]
-            if m_old > m_new:  # 古い方の月が大きい＝年を跨いでいる
+        iso_dates[-1] = f"{year:04d}-{day_groups[-1][0]:02d}-{day_groups[-1][1]:02d}"
+        for i in range(len(day_groups) - 2, -1, -1):
+            if day_groups[i][0] > day_groups[i + 1][0]:  # 古い方の月が大きい＝年跨ぎ
                 year -= 1
-            iso_dates[i] = f"{year:04d}-{kept[i][1]:02d}-{kept[i][2]:02d}"
+            iso_dates[i] = f"{year:04d}-{day_groups[i][0]:02d}-{day_groups[i][1]:02d}"
 
     def fnum(s):
-        s = (s or "").strip().replace(",", "")
-        if not s:
+        s = (s or "").strip().replace(",", "").replace("¥", "").replace("￥", "")
+        if not s or s.startswith("#"):
             return None
         try:
             return float(s)
@@ -1018,49 +1030,129 @@ def build_site_data(base_dir=None):
         v = fnum(s)
         return int(v) if v is not None else None
 
+    def series_from(grid, ridx, conv):
+        """各日について、その日の列のうち最後の非null値を採用した系列を返す。"""
+        row = grid[ridx] if (grid and 0 <= ridx < len(grid)) else []
+        out = []
+        for g in day_groups:
+            val = None
+            for c in g[3]:
+                if c < len(row):
+                    v = conv(row[c])
+                    if v is not None:
+                        val = v
+            out.append(val)
+        return out
+
     history = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "dates": iso_dates,
-        "labels": [f"{mo}月{da}日 {tm}".strip() for (_, mo, da, tm) in kept],
+        "labels": [f"{g[0]}月{g[1]}日 {g[2]}".strip() for g in day_groups],
+        "eth_jpy": [None] * len(day_groups),
+        "usd": [None] * len(day_groups),
         "all": {"floor": [], "listed": []},
+        "agg": {k: [None] * len(day_groups) for k in ("avg", "volume", "mcap", "owners", "sales", "supply")},
         "chars": {},
     }
     for (label, fr, lr) in entities:
-        floors = [fnum(floor[fr][c]) if c < len(floor[fr]) else None for (c, *_ ) in kept]
-        listeds = [inum(floor[lr][c]) if c < len(floor[lr]) else None for (c, *_ ) in kept]
+        floors = series_from(floor, fr, fnum)
+        listeds = series_from(floor, lr, inum)
         if label == "ALL":
             history["all"]["floor"] = floors
             history["all"]["listed"] = listeds
         else:
             history["chars"][label] = {"floor": floors, "listed": listeds}
 
-    # --- 初期分(2022-06〜)を先頭に結合（data シートから一度抽出した静的ファイル）---
-    # floorprice シートは 2022-08-28 始まりなので、それ以前を history_early.json で補完する。
+    # --- eth_stats から集計指標＋ETH/円・USDレートを抽出（floorprice と同じ列構造）---
+    # 全表（時価総額・平均・出来高・オーナー・セールス・ETH円換算）を過去日でも出すための元データ。
+    es_path = os.path.join(base_dir, "eth_stats_full.json")
+    if os.path.exists(es_path):
+        try:
+            with open(es_path, "r", encoding="utf-8") as f:
+                es = json.load(f)
+            # eth_stats の行ラベル(col1)→行index
+            es_label = {}
+            for i, r in enumerate(es):
+                lab = (r[1] or "").strip() if len(r) > 1 else ""
+                if lab and lab not in es_label:
+                    es_label[lab] = i
+
+            def es_series(label, intf=False):
+                ri = es_label.get(label)
+                if ri is None:
+                    return [None] * len(day_groups)
+                return series_from(es, ri, inum if intf else fnum)
+
+            # eth_stats と floorprice の列が一致している前提（同一スクリプトが並行で書き込む）
+            if len(es) > 2 and len(es[0]) == n_cols:
+                history["eth_jpy"] = es_series("eth")
+                history["usd"] = es_series("USD=JPY")
+                history["agg"]["avg"] = es_series("one_day_average_price")
+                history["agg"]["volume"] = es_series("total_volume")
+                history["agg"]["mcap"] = es_series("market_cap")
+                history["agg"]["owners"] = es_series("num_owners", True)
+                history["agg"]["sales"] = es_series("one_day_sales", True)
+                history["agg"]["supply"] = es_series("total_supply", True)
+                # market_cap が無い日は floor × supply で補完（classic相当: floor×総供給）
+                # supply も無い日は CNP の総供給 22,222（固定コレクション）で代用
+                SUPPLY_FALLBACK = 22222
+                for i in range(len(day_groups)):
+                    if history["agg"]["mcap"][i] is None:
+                        fl = history["all"]["floor"][i]
+                        sp = history["agg"]["supply"][i] or SUPPLY_FALLBACK
+                        if fl is not None:
+                            history["agg"]["mcap"][i] = round(fl * sp)
+            else:
+                print(f"  ! eth_stats の列数が floorprice と不一致のため集計をスキップ (es={len(es[0]) if es else 0} fp={n_cols})")
+        except Exception as e:
+            print(f"  ! eth_stats の取り込みに失敗: {e}")
+
+    # --- 初期分(2022-06〜) と floorprice の歯抜けを data シート由来の static ファイルで補完 ---
+    # 日付キーでマージし、各フィールドは「floorprice/eth_stats 側が値を持てば優先、
+    # 無ければ data シート(history_early.json)の値で埋める」。
+    # → 2022-08-28 以前の追加に加え、floorprice の値が空だった 8/28〜11/01 等の穴も埋まる。
     early_path = os.path.join(base_dir, "data", "history_early.json")
     if os.path.exists(early_path):
         try:
             with open(early_path, "r", encoding="utf-8") as f:
                 early = json.load(f)
-            cutoff = history["dates"][0] if history["dates"] else None
-            sel = [i for i, d in enumerate(early["dates"]) if cutoff is None or d < cutoff]
-            if sel:
-                edates = [early["dates"][i] for i in sel]
-                def elabel(iso):
-                    y, mo, da = iso.split("-")
-                    return f"{int(mo)}月{int(da)}日"
-                elabels = [elabel(d) for d in edates]
-                blank = [None] * len(early["dates"])
+            h_dates = history["dates"]
+            e_dates = early.get("dates", [])
+            h_idx = {d: i for i, d in enumerate(h_dates)}
+            e_idx = {d: i for i, d in enumerate(e_dates)}
+            union = sorted(set(h_dates) | set(e_dates))
+
+            def merge_series(h_arr, e_arr):
+                out = []
+                for d in union:
+                    hv = h_arr[h_idx[d]] if (h_arr is not None and d in h_idx) else None
+                    ev = e_arr[e_idx[d]] if (e_arr is not None and d in e_idx) else None
+                    out.append(hv if hv is not None else ev)
+                return out
+
+            # 単純な系列（top-level）
+            history["eth_jpy"] = merge_series(history["eth_jpy"], early.get("eth_jpy"))
+            history["usd"] = merge_series(history["usd"], early.get("usd"))
+            # all / agg / chars
+            for key in ("floor", "listed"):
+                history["all"][key] = merge_series(history["all"][key], early.get("all", {}).get(key))
+            for key in history["agg"]:
+                history["agg"][key] = merge_series(history["agg"][key], early.get("agg", {}).get(key))
+            for name, ser in history["chars"].items():
+                esrc = early.get("chars", {}).get(name, {})
                 for key in ("floor", "listed"):
-                    ev = [early["all"][key][i] for i in sel]
-                    history["all"][key] = ev + history["all"][key]
-                for name, ser in history["chars"].items():
-                    esrc = early["chars"].get(name, {})
-                    for key in ("floor", "listed"):
-                        col = esrc.get(key) or blank
-                        ser[key] = [col[i] for i in sel] + ser[key]
-                history["dates"] = edates + history["dates"]
-                history["labels"] = elabels + history["labels"]
-                print(f"  ✓ 初期分を結合: {len(sel)}日 ({edates[0]}〜{edates[-1]})")
+                    ser[key] = merge_series(ser[key], esrc.get(key))
+
+            # labels / dates を union に合わせ直す
+            def mk_label(d):
+                if d in h_idx:
+                    return history["labels"][h_idx[d]]
+                _, mo, da = d.split("-")
+                return f"{int(mo)}月{int(da)}日"
+            history["labels"] = [mk_label(d) for d in union]
+            history["dates"] = union
+            added = len([d for d in e_dates if d not in h_idx])
+            print(f"  ✓ data シートで補完: 全{len(union)}日（追加/補填 {len(e_dates)}日分を反映）")
         except Exception as e:
             print(f"  ! history_early.json の結合に失敗: {e}")
 

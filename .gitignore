@@ -1,5 +1,6 @@
 # フル生データ（履歴の元・サイズ大。履歴は data/history.json に間引いて格納）
 floorprice_full.json
+eth_stats_full.json
 
 # 認証・秘密情報
 .env
