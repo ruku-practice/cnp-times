@@ -136,5 +136,12 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
   border-radius: 50%; animation: sp 0.8s linear infinite; margin: 0 auto 14px; }
 @keyframes sp { to { transform: rotate(360deg); } }
 .hidden { display: none !important; }
-.footer { margin-top: 40px; text-align: center; font-size: 12px; color: var(--text-dim); }
+.footer { margin-top: 44px; font-size: 12px; color: var(--text-dim); }
+.footer .creator { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.footer .creator > span { font-weight: 700; color: var(--text); }
+.footer .notes { max-width: 760px; margin: 0 auto; }
+.footer .notes ul { margin: 6px 0 0; padding-left: 18px; }
+.footer .notes li { margin: 4px 0; line-height: 1.6; }
+.footer .notes b { color: var(--text); }
 .footer a { color: var(--accent); }

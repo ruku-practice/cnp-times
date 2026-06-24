@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>勝手にCNP TIMES - Webダッシュボード</title>
-  <link rel="stylesheet" href="style.css?v=1.6">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="stylesheet" href="style.css?v=1.7">
 </head>
 <body>
   <div class="container">
@@ -19,7 +19,12 @@
 
     <!-- Main Dashboard (Initially Hidden) -->
     <div id="dashboard-content" class="hidden">
-      
+
+      <!-- 高機能版への導線 -->
+      <div class="adv-link-bar">
+        <a href="advanced.html" class="adv-link">📊 高機能版（グラフ・過去データ・キャラ別推移）へ →</a>
+      </div>
+
       <!-- Newspaper Paper Grid -->
       <div class="paper-body">
         
@@ -183,32 +188,15 @@
         </table>
       </div>
 
-      <!-- Toggle Button for Charts -->
-      <div class="chart-toggle-area">
-        <button id="toggle-chart-btn" class="toggle-btn">
-          <span>時系列推移グラフを表示</span>
-          <span class="arrow">▼</span>
-        </button>
-      </div>
-
-      <!-- Chart Panel (Initially Hidden) -->
-      <div id="chart-panel" class="chart-panel hidden">
-        <div class="chart-header">
-          <h2>時系列推移グラフ</h2>
-          <div class="chart-tabs">
-            <button class="chart-tab active" data-chart="floor">フロア価格 (ETH)</button>
-            <button class="chart-tab" data-chart="listed">出品数 (点)</button>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="historyChart"></canvas>
-        </div>
+      <!-- 高機能版への導線（下部） -->
+      <div class="adv-link-bar bottom">
+        <a href="advanced.html" class="adv-link">📊 グラフや過去データは高機能版で見られます →</a>
       </div>
 
     </div>
 
   </div>
 
-  <script src="app.js?v=1.6"></script>
+  <script src="app.js?v=1.7"></script>
 </body>
 </html>

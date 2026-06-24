@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>勝手にCNP TIMES — 高機能版</title>
-  <link rel="stylesheet" href="advanced.css?v=1.0">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="stylesheet" href="advanced.css?v=1.1">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -68,6 +70,14 @@
             <button class="btn period" data-days="90">3ヶ月</button>
             <button class="btn period active" data-days="365">1年</button>
             <button class="btn period" data-days="0">全期間</button>
+            <button class="btn period" data-days="custom">カスタム</button>
+          </div>
+        </div>
+        <div class="controls hidden" id="custom-range">
+          <div class="grp">
+            <label>開始</label><input type="date" id="range-from">
+            <label>終了</label><input type="date" id="range-to">
+            <button class="btn" id="range-apply">適用</button>
           </div>
         </div>
         <div class="panel"><div class="chart-box"><canvas id="chart"></canvas></div></div>
@@ -89,8 +99,22 @@
     </div>
 
     <div class="footer">
-      <p>データ: OpenSea / NFTT Marketplace ・ 毎日 0:00(JST) 自動更新<br>
-      <a href="index.html">クラシック版（新聞風）はこちら</a></p>
+      <div class="creator">
+        <span>制作: ルク</span>
+        <a class="btn ghost" href="https://rukupractice.substack.com" target="_blank" rel="noopener">📰 Substack</a>
+        <a class="btn ghost" href="https://x.com/ruku_practice" target="_blank" rel="noopener">𝕏 @ruku_practice</a>
+        <a class="btn ghost" href="index.html">クラシック版</a>
+      </div>
+      <div class="notes">
+        <p><b>データの考え方</b></p>
+        <ul>
+          <li><b>時価総額</b> = フロア価格 × 総供給数 22,222（CNPの総発行数）で算出しています。</li>
+          <li><b>情報ソース</b>: フロア価格・出品数・セールス数・平均販売価格・キャラ別データは <b>NFTT Marketplace</b>、オーナー数・トップオファー・累計取引量(Total Volume)は <b>OpenSea</b> から取得しています。</li>
+          <li><b>累計取引量(Total Volume)</b>: OpenSea 側の数値が更新停止しているため、最後の実測値に NFTT の日次売買額を足し込んで補正表示しています。</li>
+          <li><b>キャラ別リスト率</b>の母数は現在の各キャラ供給数（エマ・タルト登場後）に基づきます。</li>
+          <li>毎日 0:00(JST) に自動更新。</li>
+        </ul>
+      </div>
     </div>
   </div>
 

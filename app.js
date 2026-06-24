@@ -22,6 +22,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const charactersList = ['オロチ', 'ミタマ', 'ナルカミ', 'リーリー', 'ルナ', 'ヤーマ', 'マカミ', 'トワ', 'セツナ', 'エマ', 'タルト'];
 
+  // 各キャラの供給数（リスト率の母数。エマ・タルト登場後の現在の数値）
+  const CHAR_SUPPLY = {
+    'オロチ': 3148, 'ミタマ': 3593, 'ナルカミ': 3348, 'リーリー': 4389, 'ルナ': 1950, 'ヤーマ': 1618,
+    'マカミ': 1345, 'トワ': 924, 'セツナ': 914, 'エマ': 495, 'タルト': 496
+  };
+  // "6/0.17%" のような「数/率」表記を、新しい母数でリスト率を再計算して返す
+  function recomputeListRate(charName, raw) {
+    const supply = CHAR_SUPPLY[charName];
+    if (!raw || !supply) return raw;
+    const parts = String(raw).split('/');
+    const count = parseInt((parts[0] || '').replace(/,/g, ''), 10);
+    if (isNaN(count)) return raw;
+    const rate = (count / supply * 100).toFixed(2);
+    return `${count}/${rate}%`;
+  }
+
   let historyChartInstance = null;
   let chartData = {
     labels: [],
@@ -35,24 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleChartBtn = document.getElementById('toggle-chart-btn');
   const chartPanel = document.getElementById('chart-panel');
 
-  // Load Data
-  Promise.all([
-    fetchJSON(HTML2_URL),
-    fetchJSON(FLOORPRICE_URL)
-  ])
-  .then(([html2Data, floorpriceData]) => {
+  // Load Data（グラフは高機能版 advanced.html に移設したため HTML2 のみ取得）
+  fetchJSON(HTML2_URL)
+  .then((html2Data) => {
     loader.classList.add('hidden');
     dashboard.classList.remove('hidden');
-    
+
     // Parse and display HTML2 stats
     renderDashboard(html2Data);
-    
-    // Parse history and draw chart
-    processHistoryData(floorpriceData);
-    drawChart('floor');
-    
-    // Bind chart tab clicks & toggle
-    setupChartEvents();
   })
   .catch(error => {
     console.error('Data loading error:', error);
@@ -244,8 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const imgUrl = charImages[charName] || '';
       const priceEth = row[4] ? row[4].trim() : '0.000';
       const priceDiff = row[6] ? row[6].trim() : '0';
-      const listRate = row[8] ? row[8].trim() : '0/0.00%';
-      const listDiff = row[10] ? row[10].trim() : '0/0.00%';
+      // リスト率は新しい母数（CHAR_SUPPLY）で再計算する
+      const listRate = recomputeListRate(charName, row[8] ? row[8].trim() : '0/0.00%');
+      const listDiff = recomputeListRate(charName, row[10] ? row[10].trim() : '0/0.00%');
 
       const tr = document.createElement('tr');
 

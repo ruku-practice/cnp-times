@@ -1050,8 +1050,9 @@ def build_site_data(base_dir=None):
         "labels": [f"{g[0]}月{g[1]}日 {g[2]}".strip() for g in day_groups],
         "eth_jpy": [None] * len(day_groups),
         "usd": [None] * len(day_groups),
+        "top_offer": [None] * len(day_groups),
         "all": {"floor": [], "listed": []},
-        "agg": {k: [None] * len(day_groups) for k in ("avg", "volume", "mcap", "owners", "sales", "supply")},
+        "agg": {k: [None] * len(day_groups) for k in ("avg", "volume", "day_volume", "mcap", "owners", "sales", "supply")},
         "chars": {},
     }
     for (label, fr, lr) in entities:
@@ -1087,7 +1088,9 @@ def build_site_data(base_dir=None):
             if len(es) > 2 and len(es[0]) == n_cols:
                 history["eth_jpy"] = es_series("eth")
                 history["usd"] = es_series("USD=JPY")
+                history["top_offer"] = es_series("Top Offer")
                 history["agg"]["avg"] = es_series("one_day_average_price")
+                history["agg"]["day_volume"] = es_series("one_day_volume")
                 history["agg"]["volume"] = es_series("total_volume")
                 history["agg"]["mcap"] = es_series("market_cap")
                 history["agg"]["owners"] = es_series("num_owners", True)
@@ -1102,6 +1105,24 @@ def build_site_data(base_dir=None):
                         sp = history["agg"]["supply"][i] or SUPPLY_FALLBACK
                         if fl is not None:
                             history["agg"]["mcap"][i] = round(fl * sp)
+                # total_volume は OpenSea 由来だが現在は更新停止（フリーズ）しているため、
+                # 末尾のフリーズ区間を「最後の実値 + その後の NFTT 日次出来高の累積」で補正する。
+                tv = history["agg"]["volume"]
+                odv = history["agg"]["day_volume"]
+                last_v = next((v for v in reversed(tv) if v is not None), None)
+                if last_v is not None:
+                    fs = None  # フリーズ区間の開始 index
+                    for i in range(len(tv) - 1, -1, -1):
+                        if tv[i] == last_v:
+                            fs = i
+                        elif tv[i] is not None:
+                            break
+                    if fs is not None and fs < len(tv) - 1:
+                        acc = last_v
+                        for i in range(fs + 1, len(tv)):
+                            acc += (odv[i] or 0)
+                            tv[i] = round(acc, 4)
+                        print(f"  ✓ total_volume 補正: idx{fs}以降を NFTT 日次出来高で累積（{last_v}→{round(acc,2)}）")
             else:
                 print(f"  ! eth_stats の列数が floorprice と不一致のため集計をスキップ (es={len(es[0]) if es else 0} fp={n_cols})")
         except Exception as e:
@@ -1133,6 +1154,7 @@ def build_site_data(base_dir=None):
             # 単純な系列（top-level）
             history["eth_jpy"] = merge_series(history["eth_jpy"], early.get("eth_jpy"))
             history["usd"] = merge_series(history["usd"], early.get("usd"))
+            history["top_offer"] = merge_series(history["top_offer"], early.get("top_offer"))
             # all / agg / chars
             for key in ("floor", "listed"):
                 history["all"][key] = merge_series(history["all"][key], early.get("all", {}).get(key))

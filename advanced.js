@@ -6,6 +6,17 @@
     'ルナ': 'luna.png', 'ヤーマ': 'yama.png', 'マカミ': 'makami.png', 'トワ': 'towa.png',
     'セツナ': 'setsuna.png', 'エマ': 'ema.png', 'タルト': 'taruto.png'
   };
+  // 各キャラの供給数（リスト率の母数。エマ・タルト登場後の現在の数値）
+  const CHAR_SUPPLY = {
+    'オロチ': 3148, 'ミタマ': 3593, 'ナルカミ': 3348, 'リーリー': 4389, 'ルナ': 1950, 'ヤーマ': 1618,
+    'マカミ': 1345, 'トワ': 924, 'セツナ': 914, 'エマ': 495, 'タルト': 496
+  };
+  // 当該日が「現在の母数」を適用できる時期か（エマが存在する＝floorが入っている）
+  function emaExists(i) { const e = HISTORY.chars['エマ']; return !!(e && e.floor[i] != null); }
+  function charRate(name, listed, i) {
+    if (listed == null || !emaExists(i) || !CHAR_SUPPLY[name]) return null;
+    return (listed / CHAR_SUPPLY[name] * 100).toFixed(2) + '%';
+  }
 
   // ---------- Theme ----------
   const themeBtn = document.getElementById('theme-btn');
@@ -76,14 +87,21 @@
       (diff != null && txt(diff) !== '' ? `<div>${diffPill(diff)}</div>` : '') + `</div>`;
   }
   function renderToday(p) {
+    const H = HISTORY, li = H.dates.length - 1, ej = H.eth_jpy[li];
+    const jpyOf = (v) => (v != null && ej != null) ? `¥${Math.round(v * ej).toLocaleString('ja-JP')}` : '';
+    const dayVol = H.agg.day_volume[li];      // 日次トータル販売額（NFTT）
+    const totalVol = H.agg.volume[li];        // 累計取引量（補正済み）
+    const topOffer = H.top_offer[li];         // トップオファー（OpenSea）
     $('today-cards').innerHTML = [
       card('最安フロア (ETH)', p.floor.eth, p.floor.jpy ? `¥${p.floor.jpy}` : '', p.floor.ethDiff),
       card('平均販売価格 (ETH)', p.avg.eth, p.avg.jpy ? `¥${p.avg.jpy}` : '', p.avg.ethDiff),
+      card('日次トータル販売額 (ETH)', eth(dayVol, 4), jpyOf(dayVol), null),
       card('時価総額 (円)', p.marketcap.jpy, p.marketcap.eth ? `${p.marketcap.eth} ETH` : '', p.marketcap.jpyDiff),
-      card('総取引量 (ETH)', p.totalVol.eth, p.totalVol.jpy ? `¥${p.totalVol.jpy}` : '', p.totalVol.ethDiff),
+      card('累計取引量 (ETH)', nf(totalVol, 1), jpyOf(totalVol), null),
       card('オーナー数', p.owners.count, '', p.owners.diff),
       card('出品数', p.listed.count, p.listed.rate ? `率 ${p.listed.rate}` : '', p.listed.diff),
       card('セールス数 (24h)', p.owners.sales, '', null),
+      card('トップオファー (WETH)', eth(topOffer, 4), jpyOf(topOffer), null),
       card('ETH価格', p.refEth.price, '', p.refEth.diff),
       card('USD価格', p.refUsd.price, '', p.refUsd.diff),
     ].join('');
@@ -100,10 +118,14 @@
   function renderChart() {
     const s = seriesFor(chartState.target);
     let dates = HISTORY.dates, floor = s.floor || [], listed = s.listed || [], ej = HISTORY.eth_jpy || [];
-    if (chartState.days > 0 && dates.length > chartState.days) {
-      const k = chartState.days;
-      dates = dates.slice(-k); floor = floor.slice(-k); listed = listed.slice(-k); ej = ej.slice(-k);
+    let lo = 0, hi = dates.length;
+    if (chartState.days === 'custom' && chartState.from && chartState.to) {
+      lo = dates.findIndex(d => d >= chartState.from); if (lo < 0) lo = dates.length;
+      for (let i = dates.length - 1; i >= 0; i--) { if (dates[i] <= chartState.to) { hi = i + 1; break; } }
+    } else if (typeof chartState.days === 'number' && chartState.days > 0 && dates.length > chartState.days) {
+      lo = dates.length - chartState.days;
     }
+    dates = dates.slice(lo, hi); floor = floor.slice(lo, hi); listed = listed.slice(lo, hi); ej = ej.slice(lo, hi);
     const cEth = cssVar('--accent-2'), cJpy = cssVar('--accent'), grid = cssVar('--border'), tick = cssVar('--text-dim');
     const datasets = [], scales = {
       x: { grid: { color: grid }, ticks: { color: tick, maxTicksLimit: 8, font: { size: 10 } } }
@@ -157,8 +179,26 @@
     grp('metric', 'metric'); grp('cur', 'cur');
     document.querySelectorAll('.btn.period').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('.btn.period').forEach(x => x.classList.remove('active'));
-      b.classList.add('active'); chartState.days = parseInt(b.dataset.days); renderChart();
+      b.classList.add('active');
+      const v = b.dataset.days;
+      if (v === 'custom') {
+        chartState.days = 'custom';
+        const ds = HISTORY.dates, rf = $('range-from'), rt = $('range-to');
+        rf.min = rt.min = ds[0]; rf.max = rt.max = ds[ds.length - 1];
+        if (!rf.value) rf.value = ds[Math.max(0, ds.length - 90)];
+        if (!rt.value) rt.value = ds[ds.length - 1];
+        chartState.from = rf.value; chartState.to = rt.value;
+        $('custom-range').classList.remove('hidden');
+      } else {
+        chartState.days = parseInt(v);
+        $('custom-range').classList.add('hidden');
+      }
+      renderChart();
     }));
+    $('range-apply').addEventListener('click', () => {
+      chartState.from = $('range-from').value; chartState.to = $('range-to').value;
+      chartState.days = 'custom'; renderChart();
+    });
   }
 
   // ---------- Date time-travel: 履歴からフル表を再現 ----------
@@ -194,22 +234,25 @@
     h += sec('本日データ');
     h += moneyRow('最安価格（フロア）', A.floor, 3);
     h += moneyRow('平均販売価格', G.avg, 3);
+    h += moneyRow('日次トータル販売額', G.day_volume, 4);
     h += moneyRow('時価総額', G.mcap, 0);
-    h += moneyRow('総取引量', G.volume, 0);
+    h += moneyRow('累計取引量', G.volume, 1);
     h += countRow('オーナー数', G.owners, 'セールス数(24h)', nf(G.sales[i]));
     const rate = (A.listed[i] != null && G.supply[i]) ? (A.listed[i] / G.supply[i] * 100).toFixed(2) + '%'
       : (A.listed[i] != null ? (A.listed[i] / 22222 * 100).toFixed(2) + '%' : '--');
     h += countRow('出品数', A.listed, '出品率', rate);
     // characters
-    h += `<tr class="seclabel"><td>キャラクター</td><td>Price(ETH)</td><td>前日差</td><td>リスト数</td><td>前日差</td></tr>`;
+    h += `<tr class="seclabel"><td>キャラクター</td><td>Price(ETH)</td><td>前日差</td><td>リスト数 (率)</td><td>前日差</td></tr>`;
     for (const c of CHARS) {
       const ser = H.chars[c]; if (!ser) continue;
       const f = ser.floor[i], pf = prev != null ? ser.floor[prev] : null;
       const l = ser.listed[i], pl = prev != null ? ser.listed[prev] : null;
       const img = CHAR_IMG[c] || '';
+      const rate = charRate(c, l, i);
+      const lcell = l == null ? '--' : nf(l) + (rate ? ` <small style="color:var(--text-dim)">${rate}</small>` : '');
       h += `<tr><td><div class="charcell"><img src="${img}" alt="">${c}</div></td>` +
         `<td class="mono">${eth(f, 3)}</td>${diffCell(f, pf, 3)}` +
-        `<td class="mono">${l == null ? '--' : nf(l)}</td>${diffCell(l, pl, 0)}</tr>`;
+        `<td class="mono">${lcell}</td>${diffCell(l, pl, 0)}</tr>`;
     }
     // past comparison
     h += sec('過去データ（本日との比較）');
@@ -222,7 +265,8 @@
         `<td class="mono">${yen(jv(pastF))}</td><td></td></tr>`;
     });
     // reference
-    h += `<tr class="seclabel"><td>参考</td><td>価格</td><td>前日差</td><td></td><td></td></tr>`;
+    h += `<tr class="seclabel"><td>参考</td><td>価格</td><td>前日差</td><td>円換算</td><td></td></tr>`;
+    h += `<tr><td>トップオファー (WETH)</td><td class="mono">${eth(H.top_offer[i], 4)}</td>${diffCell(H.top_offer[i], prev != null ? H.top_offer[prev] : null, 4)}<td class="mono">${yen(jv(H.top_offer[i]))}</td><td></td></tr>`;
     h += `<tr><td>ETH価格 (円)</td><td class="mono">${yen(H.eth_jpy[i])}</td>${diffCell(H.eth_jpy[i], prev != null ? H.eth_jpy[prev] : null, 0, true)}<td></td><td></td></tr>`;
     h += `<tr><td>USD価格 (円)</td><td class="mono">${H.usd[i] == null ? '--' : '¥' + Number(H.usd[i]).toFixed(2)}</td>${diffCell(H.usd[i], prev != null ? H.usd[prev] : null, 2)}<td></td><td></td></tr>`;
     h += `</tbody></table>`;
