@@ -1160,7 +1160,7 @@ def build_site_data(base_dir=None):
     history_path = os.path.join(base_dir, "data", "history.json")
     with open(history_path, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"  ✓ history.json: {len(kept)}日分 / {len(entities)}エンティティ -> {history_path}")
+    print(f"  ✓ history.json: {len(history['dates'])}日分 / {len(entities)}エンティティ -> {history_path}")
 
     # --- floorprice_data.json を直近 TRIM_COLS 列にトリム（クラシック用・見た目不変） ---
     trimmed = []
