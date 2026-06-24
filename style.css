@@ -1,0 +1,389 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+:root {
+  --bg-blue: #4a86e8;
+  --bg-orange: #e69138;
+  --bg-red: #e06666;
+  --bg-gray: #f3f3f3;
+  
+  --diff-up: #cfe2f3;   /* スプレッドシート標準の薄い青 */
+  --diff-down: #f4cccc; /* スプレッドシート標準の薄い赤 */
+  
+  --border-color: #999999; /* スプレッドシートの枠線に近い濃さ */
+  --text-color: #000000;
+  
+  --font-family: 'Noto Sans JP', -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #ffffff; /* 完全な白背景 */
+  color: var(--text-color);
+  font-family: var(--font-family);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 680px; /* スプレッドシートの紙面サイズに合わせる */
+  background-color: #ffffff;
+}
+
+/* --- Header Table --- */
+.header-table {
+  border: none !important;
+  margin-bottom: 0px !important; /* データテーブルと密着させる */
+  table-layout: fixed;
+  width: 100%;
+}
+
+.header-table td {
+  border: none !important;
+  background: transparent !important;
+  height: auto !important;
+  padding: 0 !important;
+}
+
+.logo-cell {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.cnp-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.title-cell {
+  vertical-align: middle;
+  padding-left: 12px !important;
+}
+
+.title-cell h1 {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--text-color);
+  letter-spacing: -0.02em;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.date-cell, .time-cell {
+  text-align: center;
+  vertical-align: bottom;
+  font-size: 16px;
+  font-weight: 900;
+  padding-bottom: 4px !important;
+}
+
+.issue-cell {
+  text-align: center;
+  vertical-align: bottom;
+  font-size: 16px;
+  font-weight: 900;
+  padding-bottom: 4px !important;
+}
+
+.empty-cell {
+  height: 20px;
+}
+
+/* --- Times Table --- */
+.paper-body {
+  width: 100%;
+}
+
+.times-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+  border: 1px solid var(--border-color);
+  table-layout: fixed; /* 列幅を完全に強制 */
+  margin-bottom: 20px; /* グラフとの隙間 */
+}
+
+.times-table th, .times-table td {
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  vertical-align: middle;
+  color: #000000;
+}
+
+/* Header Cells styling */
+.section-header-row {
+  height: 34px;
+}
+
+.section-title-cell {
+  font-weight: 900;
+  text-align: center;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.header-cell {
+  font-weight: 900;
+  text-align: center;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+/* Colgroup columns widths (Forced) */
+.col-1 { width: 32% !important; }
+.col-2 { width: 17% !important; }
+.col-3 { width: 17% !important; }
+.col-4 { width: 17% !important; }
+.col-5 { width: 17% !important; }
+
+.bg-blue {
+  background-color: var(--bg-blue) !important;
+}
+
+.bg-orange {
+  background-color: var(--bg-orange) !important;
+}
+
+.bg-red {
+  background-color: var(--bg-red) !important;
+}
+
+.bg-gray {
+  background-color: var(--bg-gray) !important;
+}
+
+.bg-white {
+  background-color: #ffffff !important;
+}
+
+/* Cell alignment & weight */
+.label-cell {
+  font-weight: 900;
+  text-align: left;
+  color: #000000;
+}
+
+.value-cell {
+  text-align: right;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.diff-cell {
+  text-align: center;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.bold {
+  font-weight: 900;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.font-bold {
+  font-weight: 900;
+}
+
+/* Diff coloring background */
+.diff-cell.up, .value-cell.up {
+  background-color: var(--diff-up);
+  color: #000000;
+}
+
+.diff-cell.down, .value-cell.down {
+  background-color: var(--diff-down);
+  color: #000000;
+}
+
+.diff-cell.flat, .value-cell.flat {
+  background-color: var(--diff-up); /* 0以上なので青にする */
+  color: #000000;
+}
+
+/* Character Specifics */
+.char-name-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* 左揃えにしてアバターを揃える */
+  padding-left: 24px; /* 中央寄りにするためのパディング */
+  gap: 12px;
+}
+
+.char-img {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+.char-name-txt {
+  font-weight: 900;
+  font-size: 18px;
+  text-align: left; /* 左揃え */
+}
+
+/* Min Price Highlight */
+.min-price-highlight {
+  color: #0000ff !important; /* 青色強調 */
+  font-weight: 900 !important;
+}
+
+/* References cell & icon layout fixes */
+.ref-cell {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+  border: none !important;
+}
+
+.ref-icon {
+  width: 18px !important;
+  height: 18px !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+}
+
+.ref-cell span {
+  font-size: 16px !important;
+  font-weight: 900 !important;
+}
+
+/* References Section specific border control */
+.ref-section tr td:nth-child(3),
+.ref-section tr th:nth-child(3) {
+  border-right: 1px solid var(--border-color) !important;
+}
+
+/* --- Loader --- */
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 16px;
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #eee;
+  border-bottom-color: var(--bg-blue);
+  border-radius: 50%;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* --- Chart Toggle & Panel --- */
+.chart-toggle-area {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.toggle-btn {
+  background: var(--bg-gray);
+  border: 1px solid var(--border-color);
+  color: #333;
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+  background: #e5e5e5;
+}
+
+.chart-panel {
+  margin-top: 24px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+  width: 100%;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.chart-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f0f0f0;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.chart-tab {
+  background: transparent;
+  border: 0;
+  color: #666;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chart-tab.active {
+  background: var(--bg-blue);
+  color: #fff;
+}
+
+.chart-container {
+  height: 250px;
+  width: 100%;
+}
+
+/* --- Border none overrides for references panel --- */
+.times-table td.border-none,
+.times-table th.border-none {
+  border: 1px solid #ffffff !important; /* 白線で上書きして消す */
+  background-color: #ffffff !important;
+}
+
+.ref-section tr td.border-none {
+  border: 1px solid #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+#row-ref-usd td.border-none {
+  border-bottom: 1px solid #ffffff !important; /* 最下部も白線で消す */
+}

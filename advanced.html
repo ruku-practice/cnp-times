@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>勝手にCNP TIMES — 高機能版</title>
+  <link rel="stylesheet" href="advanced.css?v=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="brand">
+        <img src="logo.png" alt="CNP">
+        <div>
+          <h1>勝手にCNP TIMES</h1>
+          <div class="sub">CNP マーケット統計ダッシュボード <span id="brand-issue"></span></div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div class="meta">
+        <div id="meta-date">--</div>
+        <div class="issue" id="meta-issue"></div>
+      </div>
+      <a class="btn ghost" href="index.html">📰 クラシック版</a>
+      <button class="btn ghost" id="theme-btn" title="テーマ切替">🌙</button>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader">
+      <div class="spin"></div>
+      <p>データを読み込み中...</p>
+    </div>
+
+    <!-- Main -->
+    <div id="main" class="hidden">
+
+      <!-- Today summary cards -->
+      <div class="section">
+        <h2>本日のサマリ <span class="hint" id="today-hint"></span></h2>
+        <div class="cards" id="today-cards"></div>
+      </div>
+
+      <!-- Long-term chart -->
+      <div class="section">
+        <h2>長期推移グラフ</h2>
+        <div class="controls">
+          <div class="grp">
+            <label>対象</label>
+            <select id="chart-target"></select>
+          </div>
+          <div class="grp">
+            <label>指標</label>
+            <button class="btn metric active" data-metric="floor">フロア価格(ETH)</button>
+            <button class="btn metric" data-metric="listed">出品数</button>
+          </div>
+          <div class="spacer"></div>
+          <div class="grp" id="period-grp">
+            <button class="btn period" data-days="30">1ヶ月</button>
+            <button class="btn period" data-days="90">3ヶ月</button>
+            <button class="btn period active" data-days="365">1年</button>
+            <button class="btn period" data-days="0">全期間</button>
+          </div>
+        </div>
+        <div class="panel"><div class="chart-box"><canvas id="chart"></canvas></div></div>
+      </div>
+
+      <!-- Date time-travel -->
+      <div class="section">
+        <h2>日付を遡って当時の表を見る</h2>
+        <div class="controls">
+          <button class="btn" id="date-prev">◀ 前の記録</button>
+          <input type="date" id="date-picker">
+          <button class="btn" id="date-next">次の記録 ▶</button>
+          <button class="btn ghost" id="date-latest">最新へ</button>
+        </div>
+        <div class="note" id="date-note"></div>
+        <div class="panel" id="travel-panel"></div>
+      </div>
+
+    </div>
+
+    <div class="footer">
+      <p>データ: OpenSea / NFTT Marketplace ・ 毎日 0:00(JST) 自動更新<br>
+      <a href="index.html">クラシック版（新聞風）はこちら</a></p>
+    </div>
+  </div>
+
+  <script src="advanced.js?v=1.0"></script>
+</body>
+</html>

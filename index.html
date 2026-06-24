@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>勝手にCNP TIMES - Webダッシュボード</title>
+  <link rel="stylesheet" href="style.css?v=1.6">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Loading State -->
+    <div id="loader-container" class="loader-container">
+      <div class="loader"></div>
+      <p style="color: #666; font-size: 14px; font-weight: bold;">スプレッドシートからデータを取得中...</p>
+    </div>
+
+    <!-- Main Dashboard (Initially Hidden) -->
+    <div id="dashboard-content" class="hidden">
+      
+      <!-- Newspaper Paper Grid -->
+      <div class="paper-body">
+        
+        <!-- ヘッダータイトルテーブル (罫線なし、独自列幅で窮屈さを解消) -->
+        <table class="times-table header-table">
+          <colgroup>
+            <col style="width: 12%;">
+            <col style="width: 58%;">
+            <col style="width: 15%;">
+            <col style="width: 15%;">
+          </colgroup>
+          <tbody class="header-section">
+            <tr class="header-row-1">
+              <td rowspan="2" class="logo-cell">
+                <img src="logo.png" alt="CNP" class="cnp-logo">
+              </td>
+              <td class="title-cell">
+                <h1>勝手にCNP TIMES</h1>
+              </td>
+              <td class="date-cell">
+                <span id="header-date">--/--/--</span>
+              </td>
+              <td class="time-cell">
+                <span id="header-time">--:--</span>
+              </td>
+            </tr>
+            <tr class="header-row-2">
+              <td class="empty-cell"></td>
+              <td class="empty-cell"></td>
+              <td class="issue-cell">
+                <span id="header-issue">第--号</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <table class="times-table">
+          <colgroup>
+            <col class="col-1">
+            <col class="col-2">
+            <col class="col-3">
+            <col class="col-4">
+            <col class="col-5">
+          </colgroup>
+          
+          <!-- 2. 本日データ -->
+          <tbody class="today-section">
+            <tr class="section-header-row">
+              <th class="section-title-cell bg-blue">本日データ</th>
+              <th class="header-cell bg-orange">Price(ETH)</th>
+              <th class="header-cell bg-red">前日差</th>
+              <th class="header-cell bg-orange">Price(JPY)</th>
+              <th class="header-cell bg-red">前日差</th>
+            </tr>
+            <tr id="row-floor">
+              <td class="label-cell">最安価格（FloorPrice）</td>
+              <td class="value-cell bold" id="floor-eth">--</td>
+              <td class="diff-cell bold" id="floor-eth-diff">--</td>
+              <td class="value-cell bold" id="floor-jpy">--</td>
+              <td class="diff-cell bold" id="floor-jpy-diff">--</td>
+            </tr>
+            <tr id="row-avg">
+              <td class="label-cell">平均販売価格</td>
+              <td class="value-cell bold" id="avg-eth">--</td>
+              <td class="diff-cell bold" id="avg-eth-diff">--</td>
+              <td class="value-cell bold" id="avg-jpy">--</td>
+              <td class="diff-cell bold" id="avg-jpy-diff">--</td>
+            </tr>
+            <tr id="row-marketcap">
+              <td class="label-cell">時価総額（MarketCap）</td>
+              <td class="value-cell bold" id="cap-eth">--</td>
+              <td class="diff-cell bold" id="cap-eth-diff">--</td>
+              <td class="value-cell bold" id="cap-jpy">--</td>
+              <td class="diff-cell bold" id="cap-jpy-diff">--</td>
+            </tr>
+            <tr id="row-owners">
+              <td class="label-cell">オーナー数</td>
+              <td class="value-cell bold" id="owners-count">--</td>
+              <td class="diff-cell bold" id="owners-diff">--</td>
+              <td class="label-cell text-center font-bold bg-white">セールス数</td>
+              <td class="value-cell bold text-center bg-white" id="sales-count">--</td>
+            </tr>
+            <tr id="row-listed">
+              <td class="label-cell">出品数</td>
+              <td class="value-cell bold" id="listed-count">--</td>
+              <td class="diff-cell bold" id="listed-diff">--</td>
+              <td class="label-cell text-center font-bold bg-white">出品率</td>
+              <td class="value-cell bold text-center bg-white" id="listed-rate">--</td>
+            </tr>
+          </tbody>
+
+          <!-- 3. キャラクター -->
+          <tbody class="character-header-section">
+            <tr class="section-header-row">
+              <th class="section-title-cell bg-blue">キャラクター</th>
+              <th class="header-cell bg-orange">Price(ETH)</th>
+              <th class="header-cell bg-red">前日差</th>
+              <th class="header-cell bg-orange">リスト数/率</th>
+              <th class="header-cell bg-red">前日差</th>
+            </tr>
+          </tbody>
+          <tbody id="character-rows">
+            <!-- Dynamically populated character rows -->
+          </tbody>
+
+          <!-- 4. 過去データ -->
+          <tbody class="past-section">
+            <tr class="section-header-row">
+              <th class="section-title-cell bg-blue">過去データ</th>
+              <th class="header-cell bg-orange">Price(ETH)</th>
+              <th class="header-cell bg-red">本日-過去</th>
+              <th class="header-cell bg-orange">Price(JPY)</th>
+              <th class="header-cell bg-red">本日-過去</th>
+            </tr>
+            <tr id="row-past-7">
+              <td class="label-cell">7日前のフロア</td>
+              <td class="value-cell bold" id="past-7-eth">--</td>
+              <td class="diff-cell bold" id="past-7-eth-diff">--</td>
+              <td class="value-cell bold" id="past-7-jpy">--</td>
+              <td class="diff-cell bold" id="past-7-jpy-diff">--</td>
+            </tr>
+            <tr id="row-past-30">
+              <td class="label-cell">30日前のフロア</td>
+              <td class="value-cell bold" id="past-30-eth">--</td>
+              <td class="diff-cell bold" id="past-30-eth-diff">--</td>
+              <td class="value-cell bold" id="past-30-jpy">--</td>
+              <td class="diff-cell bold" id="past-30-jpy-diff">--</td>
+            </tr>
+          </tbody>
+
+          <!-- 5. 参考 -->
+          <tbody class="ref-section">
+            <tr class="section-header-row">
+              <th class="section-title-cell bg-blue">参考</th>
+              <th class="header-cell bg-orange">Price</th>
+              <th class="header-cell bg-red">前日差</th>
+              <td class="border-none"></td>
+              <td class="border-none"></td>
+            </tr>
+            <tr id="row-ref-eth">
+              <td class="label-cell ref-cell">
+                <img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" class="ref-icon" alt="ETH">
+                <span>ETH価格</span>
+              </td>
+              <td class="value-cell bold" id="ref-eth">--</td>
+              <td class="diff-cell bold" id="ref-eth-diff">--</td>
+              <td class="border-none"></td>
+              <td class="border-none"></td>
+            </tr>
+            <tr id="row-ref-usd">
+              <td class="label-cell ref-cell">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ref-icon" style="width:18px;height:18px;vertical-align:middle;color:#2e7d32;margin-right:6px;"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
+                <span>USD価格</span>
+              </td>
+              <td class="value-cell bold" id="ref-usd">--</td>
+              <td class="diff-cell bold" id="ref-usd-diff">--</td>
+              <td class="border-none"></td>
+              <td class="border-none"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Toggle Button for Charts -->
+      <div class="chart-toggle-area">
+        <button id="toggle-chart-btn" class="toggle-btn">
+          <span>時系列推移グラフを表示</span>
+          <span class="arrow">▼</span>
+        </button>
+      </div>
+
+      <!-- Chart Panel (Initially Hidden) -->
+      <div id="chart-panel" class="chart-panel hidden">
+        <div class="chart-header">
+          <h2>時系列推移グラフ</h2>
+          <div class="chart-tabs">
+            <button class="chart-tab active" data-chart="floor">フロア価格 (ETH)</button>
+            <button class="chart-tab" data-chart="listed">出品数 (点)</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="historyChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="app.js?v=1.6"></script>
+</body>
+</html>
