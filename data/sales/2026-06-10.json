@@ -9,7 +9,9 @@
   "price_jpy": 53921,
   "from": "0x1A0Ab2a8577FD4385E0B30474507572d92072151",
   "to": "0x277b6c5F468Cf9aEadB27b21B4111D231F562F77",
-  "tx": "0xb2c8686d20ebcd37d8669c8ac55558747e1c1dc87b0603222b974e1473f443e5"
+  "tx": "0xb2c8686d20ebcd37d8669c8ac55558747e1c1dc87b0603222b974e1473f443e5",
+  "from_cnp": 2,
+  "to_cnp": 1
  },
  {
   "date": "2026-06-10",
@@ -21,7 +23,9 @@
   "price_jpy": 125630,
   "from": "0xB5Bf2A1E1c6B36dB85974385Cb79EC3fb1f635B7",
   "to": "0x87481851f2cacfFF8763f49BFF57E7afe3Ab87dC",
-  "tx": "0xc238e76c25f0542fe9340bf84c0d10c70aec9f7d3e5713d6a2761d13408ef9c7"
+  "tx": "0xc238e76c25f0542fe9340bf84c0d10c70aec9f7d3e5713d6a2761d13408ef9c7",
+  "from_cnp": 7,
+  "to_cnp": 3
  },
  {
   "date": "2026-06-10",
@@ -33,7 +37,9 @@
   "price_jpy": 117778,
   "from": "0x46982BBCd8356E1f7c2e19E80E7456F656598338",
   "to": "0x894c9b2Ed4Ba79e9a75760fA4047e46D0a671d19",
-  "tx": "0xf0093979c4f05571b924a6aeba7ea3268a7526f4af6c6249437fa62ec20df802"
+  "tx": "0xf0093979c4f05571b924a6aeba7ea3268a7526f4af6c6249437fa62ec20df802",
+  "from_cnp": 2,
+  "to_cnp": 2
  },
  {
   "date": "2026-06-10",
@@ -45,7 +51,9 @@
   "price_jpy": 38084,
   "from": "0x91d64f967c0c61949F8e226032275C7246919d0b",
   "to": "0x4e2fDf615C83ABeE1Be2464415416a8011DEab59",
-  "tx": "0x30121dfafc031f2958c1d8762c717d6d370f9961643652d860c840fd80ac09d6"
+  "tx": "0x30121dfafc031f2958c1d8762c717d6d370f9961643652d860c840fd80ac09d6",
+  "from_cnp": 0,
+  "to_cnp": 23
  },
  {
   "date": "2026-06-10",
@@ -57,7 +65,9 @@
   "price_jpy": 41735,
   "from": "0xe3cdD53B7A0f48fd7c86953C42cdf976BB26D5a3",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x40d1468eb302d7919409f02879b7d02111d9387db8a33c21681bd8acc574e55b"
+  "tx": "0x40d1468eb302d7919409f02879b7d02111d9387db8a33c21681bd8acc574e55b",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -69,7 +79,9 @@
   "price_jpy": 41732,
   "from": "0xcBc3F8d12bd907a538452E3cB198AC951C36819E",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x4219f5e871d70027ff1b3984f2a9e32793b3fc33507fd1d46e806901ac8a4f89"
+  "tx": "0x4219f5e871d70027ff1b3984f2a9e32793b3fc33507fd1d46e806901ac8a4f89",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -81,7 +93,9 @@
   "price_jpy": 41732,
   "from": "0x7DcDD213BE2a06F80956D2A9d4337d603094DCAf",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x24fdc5bbd9567c4db66ca50b59bc68433d7d3d1c91f2c9e7a69dc5df21c3a04b"
+  "tx": "0x24fdc5bbd9567c4db66ca50b59bc68433d7d3d1c91f2c9e7a69dc5df21c3a04b",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -93,7 +107,9 @@
   "price_jpy": 41732,
   "from": "0x7DcDD213BE2a06F80956D2A9d4337d603094DCAf",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x7ac1986ca4d7adfa0eaa129d93242f9d127336e8c31ed35a24d6881c2998d5e5"
+  "tx": "0x7ac1986ca4d7adfa0eaa129d93242f9d127336e8c31ed35a24d6881c2998d5e5",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -105,7 +121,9 @@
   "price_jpy": 41735,
   "from": "0xe358785448c52aA48295E132CE53F9e6c18f2ba7",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x1e5a76cd7b20cca3441f18b2a22b6cd50bb5fb3f266971e3537e2797a90e1666"
+  "tx": "0x1e5a76cd7b20cca3441f18b2a22b6cd50bb5fb3f266971e3537e2797a90e1666",
+  "from_cnp": 0,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -117,7 +135,9 @@
   "price_jpy": 41735,
   "from": "0xdC55d960518A234c7CCA62478FFf899185dCC536",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0xa115f4dc24c1df6b5629d9646e6cc5f1ee76878474317d553415d1909540f210"
+  "tx": "0xa115f4dc24c1df6b5629d9646e6cc5f1ee76878474317d553415d1909540f210",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -129,7 +149,9 @@
   "price_jpy": 41735,
   "from": "0xD71ab258E50428388eE2221cdf1592aFE0982B2c",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x52d0154ff74a0cda6102d922c8dbe14ffa7ad011e5dcabdc5d286cdc461a07a7"
+  "tx": "0x52d0154ff74a0cda6102d922c8dbe14ffa7ad011e5dcabdc5d286cdc461a07a7",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -141,7 +163,9 @@
   "price_jpy": 41735,
   "from": "0x1D769c39740FdF7E005359cd1cc7eb72D62a19f7",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0xbe20dc8c1d04caf6ca691fe735c5a573fd122e569b37cd1387e5db3508790183"
+  "tx": "0xbe20dc8c1d04caf6ca691fe735c5a573fd122e569b37cd1387e5db3508790183",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -153,7 +177,9 @@
   "price_jpy": 41732,
   "from": "0x1D769c39740FdF7E005359cd1cc7eb72D62a19f7",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x8bd62d18e1e8054c68244e98a8193d69f62696ca53502fa579efc315f60aa054"
+  "tx": "0x8bd62d18e1e8054c68244e98a8193d69f62696ca53502fa579efc315f60aa054",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -165,7 +191,9 @@
   "price_jpy": 41732,
   "from": "0x7931834eB9476F177d6E947fACea2f63c9F90C42",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x14c819d0fc6c16f2fb3ee29d14884ff750d44f0ba6a624e4f4eb2024d0649818"
+  "tx": "0x14c819d0fc6c16f2fb3ee29d14884ff750d44f0ba6a624e4f4eb2024d0649818",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -177,7 +205,9 @@
   "price_jpy": 41732,
   "from": "0xD71ab258E50428388eE2221cdf1592aFE0982B2c",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0xf7d3181f4d3bb5e599ef770489400a00aedb996b8976db99369793648e5157ad"
+  "tx": "0xf7d3181f4d3bb5e599ef770489400a00aedb996b8976db99369793648e5157ad",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -189,7 +219,9 @@
   "price_jpy": 41732,
   "from": "0x4Eb4Cc3517777317463Ac297C86C6fd5Fb8780c8",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0xdfcc534e0de6ef67f382de5cf48cf3eea03425caf5c46143d77bccbf36df13de"
+  "tx": "0xdfcc534e0de6ef67f382de5cf48cf3eea03425caf5c46143d77bccbf36df13de",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -201,7 +233,9 @@
   "price_jpy": 39132,
   "from": "0x74613a82718e3AE88DF707F21c659e42A7851153",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x6a9d3c231b9a7ecebce1b6b0bf600fc809e7658fd4329ec688cc045719df9ba1"
+  "tx": "0x6a9d3c231b9a7ecebce1b6b0bf600fc809e7658fd4329ec688cc045719df9ba1",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -213,7 +247,9 @@
   "price_jpy": 41732,
   "from": "0x4Eb4Cc3517777317463Ac297C86C6fd5Fb8780c8",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x460a9382a5d5a99572cc1d7ae295c964a03a8f093194e39369d202ce454c5f17"
+  "tx": "0x460a9382a5d5a99572cc1d7ae295c964a03a8f093194e39369d202ce454c5f17",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -225,7 +261,9 @@
   "price_jpy": 41732,
   "from": "0x575b362de54b9156eB2D4078418Ad0458CcDdAB4",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x9affaf14d3cd070dbbf918de9fcb7b458e8831b3c88fd874385cea8d97530aef"
+  "tx": "0x9affaf14d3cd070dbbf918de9fcb7b458e8831b3c88fd874385cea8d97530aef",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -237,7 +275,9 @@
   "price_jpy": 39132,
   "from": "0xD450592E47975f632B9A88DdA3a6a4de3A2021dD",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x16fc4d68a5a37db3b419a4854309d0512efcf036c66ac2f3382a0a63c6b5e2e2"
+  "tx": "0x16fc4d68a5a37db3b419a4854309d0512efcf036c66ac2f3382a0a63c6b5e2e2",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -249,7 +289,9 @@
   "price_jpy": 39108,
   "from": "0x42B465d534606C55270a6d654B44B19189df67C3",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x953dbbd71bd2dd06e2699bd550696d70cd399b0516b55eb4a667ffe4cbd10910"
+  "tx": "0x953dbbd71bd2dd06e2699bd550696d70cd399b0516b55eb4a667ffe4cbd10910",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -261,7 +303,9 @@
   "price_jpy": 39108,
   "from": "0xB58db8c22b6b76807aDFc684149b49f093daB8DB",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0x872e7a1aff795d0ef6f981a2ce1d0aae2341b3e2eb01c0a3631748aa93d467d5"
+  "tx": "0x872e7a1aff795d0ef6f981a2ce1d0aae2341b3e2eb01c0a3631748aa93d467d5",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -273,7 +317,9 @@
   "price_jpy": 39108,
   "from": "0xB58db8c22b6b76807aDFc684149b49f093daB8DB",
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
-  "tx": "0xc144ea5fb5f6b293f7356f43e844765c7a38bf2086de5288f3d85ef0c3e556fd"
+  "tx": "0xc144ea5fb5f6b293f7356f43e844765c7a38bf2086de5288f3d85ef0c3e556fd",
+  "from_cnp": 10,
+  "to_cnp": 647
  },
  {
   "date": "2026-06-10",
@@ -285,7 +331,9 @@
   "price_jpy": 38872,
   "from": "0xD43Cb1a14DB53492C6E06dc73b1DEED1E8Eb467D",
   "to": "0xbF1bf7Af7c21033d483c88409dbF3043e7509Cb7",
-  "tx": "0x58498c12e439e41faf1aaa38fe393b78a0de2aadd9b1163f8958a1c61d4a285e"
+  "tx": "0x58498c12e439e41faf1aaa38fe393b78a0de2aadd9b1163f8958a1c61d4a285e",
+  "from_cnp": 1,
+  "to_cnp": 13
  },
  {
   "date": "2026-06-10",
@@ -297,7 +345,9 @@
   "price_jpy": 44529,
   "from": "0xC8e3701576d749a5208E85Ae0D2E18198F4E9184",
   "to": "0x3f84e6FfF3BA02e355b02C16e5Dc7F0D796D97ac",
-  "tx": "0xb7977d04bd24e81f6dec70a4d097d05c9d028e0a3187be38de935ab8886cf891"
+  "tx": "0xb7977d04bd24e81f6dec70a4d097d05c9d028e0a3187be38de935ab8886cf891",
+  "from_cnp": 4,
+  "to_cnp": 12
  },
  {
   "date": "2026-06-10",
@@ -309,7 +359,9 @@
   "price_jpy": 36671,
   "from": "0x793cB55b58d7B467a16cC8fE6fD657fC82BFC0ED",
   "to": "0xf15b2D971B9b320d931B5264Df47af3B4DB82981",
-  "tx": "0x3e2334aa501328daa4e63bb22817ad216bc8b298834e174e2871ace7b95b4e99"
+  "tx": "0x3e2334aa501328daa4e63bb22817ad216bc8b298834e174e2871ace7b95b4e99",
+  "from_cnp": 24,
+  "to_cnp": 13
  },
  {
   "date": "2026-06-10",
@@ -321,7 +373,9 @@
   "price_jpy": 36147,
   "from": "0x12d94456564Ea6B911b4062f234cAc40d9C68A00",
   "to": "0x79F29D23C77a6A6ff087f6448D54f370f7a199f2",
-  "tx": "0xd9bc64d12990c17fa84b6113e825d5c00c1efd8ff3daa05d30e76f2936eb8faa"
+  "tx": "0xd9bc64d12990c17fa84b6113e825d5c00c1efd8ff3daa05d30e76f2936eb8faa",
+  "from_cnp": 17,
+  "to_cnp": 8
  },
  {
   "date": "2026-06-10",
@@ -333,7 +387,9 @@
   "price_jpy": 35623,
   "from": "0x9E48a722A8B0FAc1F140d6FAFC9C7167d34A7891",
   "to": "0x79F29D23C77a6A6ff087f6448D54f370f7a199f2",
-  "tx": "0x475077a927cad3c595ef6f866f5452415b30e2bf5eea965d2a5e2233e7af646f"
+  "tx": "0x475077a927cad3c595ef6f866f5452415b30e2bf5eea965d2a5e2233e7af646f",
+  "from_cnp": 20,
+  "to_cnp": 8
  },
  {
   "date": "2026-06-10",
@@ -345,7 +401,9 @@
   "price_jpy": 35361,
   "from": "0xD8CAA49ade8Ac86960C026c9dAeAA43d480Ab6B3",
   "to": "0x79F29D23C77a6A6ff087f6448D54f370f7a199f2",
-  "tx": "0x00c57e151e56556b6773ee9f2ba02124d971fd777dc87a0a7a2456c2290660f4"
+  "tx": "0x00c57e151e56556b6773ee9f2ba02124d971fd777dc87a0a7a2456c2290660f4",
+  "from_cnp": 50,
+  "to_cnp": 8
  },
  {
   "date": "2026-06-10",
@@ -357,7 +415,9 @@
   "price_jpy": 36415,
   "from": "0x083e6B4300A3e3c4e6d6e888E4cA158b3cb1812E",
   "to": "0xCE520181607D93aFB34e7AeC6Cf8EA766C4581Ce",
-  "tx": "0xb3a3e6f55ddaf058e69224f788e550f9584a8095bf21b978961bb89089aec404"
+  "tx": "0xb3a3e6f55ddaf058e69224f788e550f9584a8095bf21b978961bb89089aec404",
+  "from_cnp": 14,
+  "to_cnp": 1
  },
  {
   "date": "2026-06-10",
@@ -369,7 +429,9 @@
   "price_jpy": 39514,
   "from": "0x4Eb4Cc3517777317463Ac297C86C6fd5Fb8780c8",
   "to": "0x93823Eb9CB2209f867Fae47f2cd7b392E49FBaa0",
-  "tx": "0xbbcc4831215a58c6096071f90f4077ce1a2e5f1c3b8e867c330401f02f6bc653"
+  "tx": "0xbbcc4831215a58c6096071f90f4077ce1a2e5f1c3b8e867c330401f02f6bc653",
+  "from_cnp": 10,
+  "to_cnp": 2
  },
  {
   "date": "2026-06-10",
@@ -381,6 +443,8 @@
   "price_jpy": 65828,
   "from": "0x38DfFfBFdb0F137973BEbdA50784DC4e36F4e6cF",
   "to": "0xEFFa0B6B2Ed1A91c14c281F23eAbc4e2d7Ff6FCf",
-  "tx": "0x8aa82b98117f41376925745662590e854f0edffd872a619f66a38a17ec240f28"
+  "tx": "0x8aa82b98117f41376925745662590e854f0edffd872a619f66a38a17ec240f28",
+  "from_cnp": 4,
+  "to_cnp": 0
  }
 ]

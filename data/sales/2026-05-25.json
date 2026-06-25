@@ -9,6 +9,8 @@
   "price_jpy": 46463,
   "from": "0x377acA7d35197c59215424e4e1D6B52fCaAc6cd8",
   "to": "0xdba538633bF52B0cAe66c42991fC94C4FE6CbEeD",
-  "tx": "0xfc58546178d678d6ff9c97107ff5556da9fa448bfbdc5c93aef676bfc2af184c"
+  "tx": "0xfc58546178d678d6ff9c97107ff5556da9fa448bfbdc5c93aef676bfc2af184c",
+  "from_cnp": 4,
+  "to_cnp": 0
  }
 ]

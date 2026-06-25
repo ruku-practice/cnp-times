@@ -596,6 +596,15 @@ class CNPStatsIntegrated:
         try:
             data_dir = os.path.join(self.base_dir, "data", "sales")
             os.makedirs(data_dir, exist_ok=True)
+            # CNP保有数の取得（同一アドレスはこの保存処理内でメモ化）
+            _bal_memo = {}
+            def _bal(addr):
+                if not addr:
+                    return None
+                k = addr.lower()
+                if k not in _bal_memo:
+                    _bal_memo[k] = self._cnp_balance(addr)
+                return _bal_memo[k]
             by_date = {}
             for s in sales:
                 by_date.setdefault(s['date'], []).append(s)
@@ -610,7 +619,12 @@ class CNPStatsIntegrated:
                     except Exception:
                         existing = []
                 seen = {(e.get('tx'), e.get('token')) for e in existing}
-                merged = existing + [s for s in items if (s.get('tx'), s.get('token')) not in seen]
+                new_items = [s for s in items if (s.get('tx'), s.get('token')) not in seen]
+                # 新規セールスには取得時点の送信元/受信先CNP保有数を焼き込む（以後固定・過去は更新しない）
+                for s in new_items:
+                    s['from_cnp'] = _bal(s.get('from'))
+                    s['to_cnp'] = _bal(s.get('to'))
+                merged = existing + new_items
                 merged.sort(key=lambda x: x.get('time', ''), reverse=True)
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump(merged, f, ensure_ascii=False, indent=1)

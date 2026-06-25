@@ -9,7 +9,9 @@
   "price_jpy": 40381,
   "from": "0x3938C6Ab63a3d54070faD0c6516579c14b5C9A41",
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
-  "tx": "0x941115f1cd944abf810aee767b58b5d1a5cd56c3e39b6929b0282e561cae0be6"
+  "tx": "0x941115f1cd944abf810aee767b58b5d1a5cd56c3e39b6929b0282e561cae0be6",
+  "from_cnp": 58,
+  "to_cnp": 97
  },
  {
   "date": "2026-06-24",
@@ -21,7 +23,9 @@
   "price_jpy": 40381,
   "from": "0x3938C6Ab63a3d54070faD0c6516579c14b5C9A41",
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
-  "tx": "0xb48a71d8f1f01ea0eda459dfd2487cf0b642ce1d75bb535cbe34bce49e5c9ad4"
+  "tx": "0xb48a71d8f1f01ea0eda459dfd2487cf0b642ce1d75bb535cbe34bce49e5c9ad4",
+  "from_cnp": 58,
+  "to_cnp": 97
  },
  {
   "date": "2026-06-24",
@@ -33,7 +37,9 @@
   "price_jpy": 43073,
   "from": "0x3938C6Ab63a3d54070faD0c6516579c14b5C9A41",
   "to": "0x35Fd8F95576b32f18927c6475706E8e7906DddEc",
-  "tx": "0x3b4f8ce4e3c0b20522d0029cec5735f915f05e335ad254b0ad7b6893ec82f775"
+  "tx": "0x3b4f8ce4e3c0b20522d0029cec5735f915f05e335ad254b0ad7b6893ec82f775",
+  "from_cnp": 58,
+  "to_cnp": 10
  },
  {
   "date": "2026-06-24",
@@ -45,6 +51,8 @@
   "price_jpy": 57898,
   "from": "0x26756A1452807Ff053407F2B4940613C1a987d77",
   "to": "0x14B1B6bB769c584b1f4255Bd2BCD928CfC87F852",
-  "tx": "0x9ebe5ceaa4cfddbce5929298e8130a9c490991985775303e1c249fe1d4be5cc0"
+  "tx": "0x9ebe5ceaa4cfddbce5929298e8130a9c490991985775303e1c249fe1d4be5cc0",
+  "from_cnp": 5,
+  "to_cnp": 7
  }
 ]

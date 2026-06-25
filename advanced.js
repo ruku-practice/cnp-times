@@ -361,11 +361,12 @@
       : shortAddr(addr);
     return `<a href="https://opensea.io/${addr}" target="_blank" rel="noopener" title="${title}">${inner}</a>`;
   }
-  // ウォレットの現在のCNP保有数バッジ（🐤）。label=送信元/受信先
-  function cnpBadge(addr, label) {
-    if (!addr) return '';
-    const c = ((WALLETS || {})[addr.toLowerCase()] || {}).cnp;
-    return (c != null) ? `<span class="sale-cnp" title="${label}の現在のCNP保有数">🐤${c}</span>` : '';
+  // ウォレットの取得時点のCNP保有数バッジ（🐤）。label=送信元/受信先
+  // snap=セールス記録に焼き込まれた値（取得時点）。無ければ従来キャッシュにフォールバック。
+  function cnpBadge(addr, label, snap) {
+    const c = (snap != null) ? snap
+      : (addr ? ((WALLETS || {})[addr.toLowerCase()] || {}).cnp : null);
+    return (c != null) ? `<span class="sale-cnp" title="${label}の取得時点のCNP保有数">🐤${c}</span>` : '';
   }
   let SALES_SEQ = 0;
   function renderSales(iso) {
@@ -392,10 +393,10 @@
           `<div class="sale-price">${eth(s.price_eth, s.price_eth < 1 ? 3 : 2)} <span class="unit">ETH</span>${jpy ? `<small>${jpy}</small>` : ''}</div>` +
           `<div class="sale-addr">` +
           walletHtml(s.from, '送信元') +
-          cnpBadge(s.from, '送信元') +
+          cnpBadge(s.from, '送信元', s.from_cnp) +
           `<span class="arrow">→</span>` +
           walletHtml(s.to, '受信先') +
-          cnpBadge(s.to, '受信先') +
+          cnpBadge(s.to, '受信先', s.to_cnp) +
           `${s.tx ? `<a class="sale-tx" href="https://etherscan.io/tx/${s.tx}" target="_blank" rel="noopener">tx↗</a>` : ''}` +
           `</div></div></div>`;
       }

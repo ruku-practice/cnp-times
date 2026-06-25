@@ -9,7 +9,9 @@
   "price_jpy": 51296,
   "from": "0x8B08ba2c45E79099116b929c7B25E00edA74735F",
   "to": "0x01B27Ec780c534bA0faB15509354C3798321273C",
-  "tx": "0x896b9522df4db51e49aaed956755a40dd32a308c56bcbe23b201acf51082ab07"
+  "tx": "0x896b9522df4db51e49aaed956755a40dd32a308c56bcbe23b201acf51082ab07",
+  "from_cnp": 10,
+  "to_cnp": 8
  },
  {
   "date": "2026-06-22",
@@ -21,7 +23,9 @@
   "price_jpy": 48762,
   "from": "0x270778E700FF62850e3bC64F81164675b82032b2",
   "to": "0xE545c0D41c622bCCCc8f103c0607D042A2242350",
-  "tx": "0xb416743129c399aac96e5a86bb4b78cc900ca5014b1b8893a9103ab4efb94b57"
+  "tx": "0xb416743129c399aac96e5a86bb4b78cc900ca5014b1b8893a9103ab4efb94b57",
+  "from_cnp": 10,
+  "to_cnp": 200
  },
  {
   "date": "2026-06-22",
@@ -33,6 +37,8 @@
   "price_jpy": 55665,
   "from": "0x3BC354a74DD3A7B2A41637F0723FFeB2a8Ae897d",
   "to": "0xeDae9EC3e28352e74d1B519BE088a7B59c891459",
-  "tx": "0x59b2daafe44a1e42734905485da4694c21088e504db986593895a80f70a9e119"
+  "tx": "0x59b2daafe44a1e42734905485da4694c21088e504db986593895a80f70a9e119",
+  "from_cnp": 6,
+  "to_cnp": 21
  }
 ]
