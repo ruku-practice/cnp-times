@@ -923,7 +923,20 @@ class CNPStatsIntegrated:
             datasets = [
                 (merged_stats, merged_char_stats, "統合")
             ]
-            
+
+            # ===== 当日の重複列ガード =====
+            # 最終列が既に「本日の日付」なら、その列を削除してから書き直す。
+            # これでリトライ・二重起動・遅延フォールバックが重なっても 1日1列 を保証する。
+            for ws in (ws_eth, ws_floor):
+                try:
+                    last_col = ws.col_count
+                    existing_date = ws.cell(2, last_col).value  # row2(=index1) が日付行
+                    if existing_date and existing_date.strip() == date_str:
+                        ws.delete_columns(last_col)
+                        print(f"  [dedup] {ws.title}: 本日({date_str})の既存列(列{last_col})を削除し、書き直します")
+                except Exception as e:
+                    print(f"  [dedup] {ws.title}: 重複チェックをスキップ: {e}")
+
             # ===== eth_stats シートへの書き込み =====
             print("\n[1] eth_stats シートへの書き込み")
             max_column_eth = ws_eth.col_count + 1

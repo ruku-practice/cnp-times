@@ -2,9 +2,13 @@ name: Daily CNP data update
 
 on:
   schedule:
-    # 00:00 JST = 15:00 UTC（GitHubのcronはUTC・混雑時は多少遅延することがあります）
+    # フォールバック専用: 00:00 JST = 15:00 UTC。
+    # GitHubのスケジュールcronはベストエフォートで、混雑時は数十分〜数時間遅延する。
+    # 確実な 0:00 実行はローカル cron からの `gh workflow run`(workflow_dispatch) で行い、
+    # この schedule は「ローカルが動かなかった日」の保険として残す。
+    # ガード(check)で本日分が既に更新済みならスキップするため二重更新は起きない。
     - cron: "0 15 * * *"
-  workflow_dispatch: {}   # 手動実行（テスト用）
+  workflow_dispatch: {}   # ローカル cron からのトリガー & 手動実行
 
 permissions:
   contents: write          # 生成したJSONをリポジトリへ push するため
@@ -26,29 +30,66 @@ jobs:
         with:
           python-version: "3.11"
 
+      # 本日(JST)分が既に取得済みなら以降を全スキップ（二重更新・遅延フォールバックの重複防止）
+      - name: Check if already updated today (JST)
+        id: check
+        run: |
+          TODAY=$(TZ=Asia/Tokyo date +%Y-%m-%d)
+          LAST=$(python -c "import json; print(json.load(open('data/history.json')).get('latest_collected',{}).get('date',''))" 2>/dev/null || echo "")
+          echo "today(JST)=$TODAY / latest_collected=$LAST"
+          if [ "$LAST" = "$TODAY" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "✅ 本日($TODAY)は既に更新済み。以降のステップをスキップします。"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "▶ 本日($TODAY)は未更新。実行します。"
+          fi
+
       - name: Install dependencies
+        if: steps.check.outputs.run == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Install Playwright Chromium
+        if: steps.check.outputs.run == 'true'
         run: python -m playwright install --with-deps chromium
 
       - name: Write service account credentials
+        if: steps.check.outputs.run == 'true'
         env:
           GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
         run: |
           printf '%s' "$GOOGLE_CREDENTIALS_JSON" > service_account.json
           echo "wrote service_account.json ($(wc -c < service_account.json) bytes)"
 
-      - name: Run scraper & build site data
+      # データ取得に失敗した時だけ再試行（最大3回・2分間隔）。
+      # 当日重複列は update_spreadsheet() の dedup ガードが防ぐため、再試行で列が増えることはない。
+      - name: Run scraper & build site data (retry on failure only)
+        if: steps.check.outputs.run == 'true'
         env:
           GOOGLE_CREDENTIALS_PATH: ${{ github.workspace }}/service_account.json
           SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
           PYTHONUNBUFFERED: "1"
-        run: python get_CNP_stats_integrated_json.py
+        run: |
+          set -o pipefail
+          for attempt in 1 2 3; do
+            echo "===== 試行 $attempt/3 ====="
+            if python get_CNP_stats_integrated_json.py; then
+              echo "✅ 試行 $attempt で成功"
+              exit 0
+            fi
+            echo "⚠ 試行 $attempt が失敗しました"
+            if [ "$attempt" -lt 3 ]; then
+              echo "120秒待機して再試行します..."
+              sleep 120
+            fi
+          done
+          echo "❌ 3回とも失敗しました"
+          exit 1
 
       - name: Commit & push updated data
+        if: steps.check.outputs.run == 'true'
         run: |
           rm -f service_account.json
           git config user.name "github-actions[bot]"
