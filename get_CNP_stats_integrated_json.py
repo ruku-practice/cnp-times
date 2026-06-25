@@ -1421,6 +1421,27 @@ def build_site_data(base_dir=None):
     history["agg"]["volume"] = clean_cumulative(history["agg"]["volume"])
     print("  ✓ volume クリーニング完了（スパイク/誤下振れ除去・リセット保持）")
 
+    # --- 取得日時を1日前にずらして「対象日」とする ---
+    # データは各日 0:00頃に取得され、内容は前日のもの。表示はその「対象日（取得日の前日）」に統一。
+    # 最新の実取得日時は latest_collected に保持する。セールス明細は実日付バケットなので自動的に整合。
+    from datetime import timedelta as _td
+    if history["dates"]:
+        _ll = history["labels"][-1] if history["labels"] else ""
+        _mt = re.search(r'(\d{1,2}:\d{2})', _ll)
+        history["latest_collected"] = {"date": history["dates"][-1], "time": _mt.group(1) if _mt else ""}
+
+        def _shift_back(iso):
+            try:
+                y, mo, da = map(int, iso.split("-"))
+                return (datetime(y, mo, da) - _td(days=1)).strftime("%Y-%m-%d")
+            except Exception:
+                return iso
+
+        history["dates"] = [_shift_back(d) for d in history["dates"]]
+        history["labels"] = [f"{int(d.split('-')[1])}月{int(d.split('-')[2])}日" for d in history["dates"]]
+        print(f"  ✓ 日付を対象日(取得日の前日)へシフト: 最新={history['dates'][-1]} "
+              f"(取得 {history['latest_collected']['date']} {history['latest_collected']['time']})")
+
     os.makedirs(os.path.join(base_dir, "data"), exist_ok=True)
     history_path = os.path.join(base_dir, "data", "history.json")
     with open(history_path, "w", encoding="utf-8") as f:

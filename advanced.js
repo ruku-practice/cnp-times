@@ -118,9 +118,20 @@
       card('ETH価格', p.refEth.price, '', '', p.refEth.diff),
       card('USD価格', p.refUsd.price, '', '', p.refUsd.diff),
     ].join('');
-    $('today-hint').textContent = p.date ? `（${p.date} ${p.time} 時点）` : '';
-    $('meta-date').textContent = p.date || '';
+    // 対象日 = 取得日の前日（history の最新日付）。取得日時は latest_collected。
+    const repDay = H.dates[li];
+    const coll = H.latest_collected || {};
+    $('today-title').textContent = `${jpDate(repDay)} のサマリ`;
+    $('today-hint').textContent = coll.date ? `（取得: ${jpDate(coll.date)} ${coll.time || ''}）` : '';
+    $('meta-date').textContent = jpDate(repDay);
     $('meta-issue').textContent = p.issue ? `第${p.issue}号` : '';
+  }
+  const WD = ['日', '月', '火', '水', '木', '金', '土'];
+  function jpDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    const w = new Date(iso + 'T00:00:00').getDay();
+    return `${m}月${d}日(${WD[w]})`;
   }
 
   // ---------- Chart ----------
@@ -266,7 +277,7 @@
         `<td>${rightLabel}</td><td class="mono">${rightVal}</td></tr>`;
     };
     const sec = (t) => `<tr class="seclabel"><td colspan="5">${t}</td></tr>`;
-    let h = `<table class="t"><caption>${H.dates[i]} の記録</caption>` +
+    let h = `<table class="t"><caption>${jpDate(H.dates[i])}（${H.dates[i]}） の記録</caption>` +
       `<thead><tr><th>項目</th><th>Price(ETH)</th><th>前日差</th><th>Price(JPY)</th><th>前日差</th></tr></thead><tbody>`;
     h += sec('本日データ');
     h += moneyRow('最安価格（フロア）', A.floor, 3);
@@ -317,15 +328,15 @@
   function renderSales(iso) {
     const panel = $('sales-panel');
     const seq = ++SALES_SEQ;
-    panel.innerHTML = `<div class="sales-head">🧾 ${iso} のセールス明細</div><div class="note">読み込み中…</div>`;
+    panel.innerHTML = `<div class="sales-head">🧾 ${jpDate(iso)} のセールス明細</div><div class="note">読み込み中…</div>`;
     fetch(`data/sales/${iso}.json`).then(r => r.ok ? r.json() : null).catch(() => null).then(sales => {
       if (seq !== SALES_SEQ) return; // 日付が変わっていたら破棄
       if (!sales || !sales.length) {
-        panel.innerHTML = `<div class="sales-head">🧾 ${iso} のセールス明細</div>` +
+        panel.innerHTML = `<div class="sales-head">🧾 ${jpDate(iso)} のセールス明細</div>` +
           `<div class="note">この日のセールス記録はありません（明細の自動記録を順次蓄積しています）。</div>`;
         return;
       }
-      let h = `<div class="sales-head">🧾 ${iso} のセールス（${sales.length}件）</div><div class="sales-list">`;
+      let h = `<div class="sales-head">🧾 ${jpDate(iso)} のセールス（${sales.length}件）</div><div class="sales-list">`;
       for (const s of sales) {
         const item = s.token ? `https://opensea.io/item/ethereum/${CONTRACT}/${s.token}` : '#';
         const jpy = s.price_jpy != null ? `¥${Number(s.price_jpy).toLocaleString('ja-JP')}` : '';
