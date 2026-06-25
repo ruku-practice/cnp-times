@@ -1,0 +1,62 @@
+[
+ {
+  "date": "2026-06-05",
+  "time": "21:54",
+  "token": "912",
+  "image": "https://data.cryptoninjapartners.com/emataruto/images/309.png",
+  "character": "Taruto",
+  "price_eth": 0.169,
+  "price_jpy": 45272,
+  "from": "0x38DfFfBFdb0F137973BEbdA50784DC4e36F4e6cF",
+  "to": "0x5DA5C9e66D606B92d27EF7291aA77AF5A3bDefeb",
+  "tx": "0x207d4a95e586c5bb9bf6e9137a44a5d36b3e4697967388bbc3f1fb9351e8ffc8"
+ },
+ {
+  "date": "2026-06-05",
+  "time": "07:53",
+  "token": "22984",
+  "image": "https://data.cryptoninjapartners.com/towasetsuna/images/1202.png",
+  "character": "Towa",
+  "price_eth": 0.1,
+  "price_jpy": 28461,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0xD43Cb1a14DB53492C6E06dc73b1DEED1E8Eb467D",
+  "tx": "0x094e6214bbc4dd0060aff71e67bb07e4be448ccc633c38d5df675e29337e1afd"
+ },
+ {
+  "date": "2026-06-05",
+  "time": "07:52",
+  "token": "9621",
+  "image": "https://data.cryptoninjapartners.com/images/9621.png",
+  "character": "Leelee",
+  "price_eth": 0.101,
+  "price_jpy": 28746,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
+  "tx": "0xf4f5c96882ef94b7436cbdf37880f1e41f36223692bd31a2455848fa6b90050f"
+ },
+ {
+  "date": "2026-06-05",
+  "time": "07:51",
+  "token": "7218",
+  "image": "https://data.cryptoninjapartners.com/images/7218.png",
+  "character": "Mitama",
+  "price_eth": 0.101,
+  "price_jpy": 28746,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
+  "tx": "0x5c68c2c94f8be8f116c24d3f603b16b5419e4013933e59a5adabfd17d9a46f8b"
+ },
+ {
+  "date": "2026-06-05",
+  "time": "07:50",
+  "token": "21487",
+  "image": "https://data.cryptoninjapartners.com/images/21487.png",
+  "character": "Orochi",
+  "price_eth": 0.105,
+  "price_jpy": 29884,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0x295889a32a17355749d97a51cb7d64bda9f6ab60364fde997ba75645c314cf1f"
+ }
+]

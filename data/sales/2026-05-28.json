@@ -1,0 +1,14 @@
+[
+ {
+  "date": "2026-05-28",
+  "time": "11:23",
+  "token": "7084",
+  "image": "https://data.cryptoninjapartners.com/images/7084.png",
+  "character": "Mitama",
+  "price_eth": 0.138,
+  "price_jpy": 44988,
+  "from": "0x4Eb4Cc3517777317463Ac297C86C6fd5Fb8780c8",
+  "to": "0xA11474420BF59F9442a345Bd8A00a50BC1568eA9",
+  "tx": "0x55439d8884959e27ca346c49abd8b4c3fcd36150931f23a05d100f5a82890b3d"
+ }
+]

@@ -1,0 +1,50 @@
+[
+ {
+  "date": "2026-05-21",
+  "time": "22:30",
+  "token": "8699",
+  "image": "https://data.cryptoninjapartners.com/images/8699.png",
+  "character": "Leelee",
+  "price_eth": 0.1,
+  "price_jpy": 34199,
+  "from": "0x9E48a722A8B0FAc1F140d6FAFC9C7167d34A7891",
+  "to": "0xfF631aD6103144DCedfB082895736efe45EC2C9F",
+  "tx": "0x08e6ca119f71380240d9448920fe1de7b37d4af90d5be2fe485b9e1888be829e"
+ },
+ {
+  "date": "2026-05-21",
+  "time": "14:31",
+  "token": "9185",
+  "image": "https://data.cryptoninjapartners.com/images/9185.png",
+  "character": "Orochi",
+  "price_eth": 0.105,
+  "price_jpy": 36364,
+  "from": "0xdcCf33612E4973c06eDbdd3092D7d4DAEe05AA3e",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0xf2cb2d5958a10fba5cd9bf80e2928e60e7dae7216e7d20e89a66383f3c57c994"
+ },
+ {
+  "date": "2026-05-21",
+  "time": "14:31",
+  "token": "6833",
+  "image": "https://data.cryptoninjapartners.com/images/6833.png",
+  "character": "Narukami",
+  "price_eth": 0.105,
+  "price_jpy": 36364,
+  "from": "0xdcCf33612E4973c06eDbdd3092D7d4DAEe05AA3e",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0x19a4cf263b7724565f20a2bab4234018be428830fef233751e30db363ee315e7"
+ },
+ {
+  "date": "2026-05-21",
+  "time": "14:28",
+  "token": "5030",
+  "image": "https://data.cryptoninjapartners.com/images/5030.png",
+  "character": "Orochi",
+  "price_eth": 0.105,
+  "price_jpy": 36364,
+  "from": "0xdcCf33612E4973c06eDbdd3092D7d4DAEe05AA3e",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0x85a7c79e9de4c2de1baab6026e1a33716f9d885f91f073c40c2428e140698782"
+ }
+]

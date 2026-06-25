@@ -1,0 +1,38 @@
+[
+ {
+  "date": "2026-06-02",
+  "time": "22:44",
+  "token": "9030",
+  "image": "https://data.cryptoninjapartners.com/images/9030.png",
+  "character": "Orochi",
+  "price_eth": 0.101,
+  "price_jpy": 32256,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0xE545c0D41c622bCCCc8f103c0607D042A2242350",
+  "tx": "0x94063b908b2bfe54c684d09ccb661b8feb3f4b4ef154fd883d8a6553aed7b2d8"
+ },
+ {
+  "date": "2026-06-02",
+  "time": "22:43",
+  "token": "7155",
+  "image": "https://data.cryptoninjapartners.com/images/7155.png",
+  "character": "Orochi",
+  "price_eth": 0.101,
+  "price_jpy": 32256,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0xE545c0D41c622bCCCc8f103c0607D042A2242350",
+  "tx": "0xf32cbe922da322e597e4ba8ac5640392e34d9e3158ee3c2017d8312184c8a848"
+ },
+ {
+  "date": "2026-06-02",
+  "time": "22:43",
+  "token": "7156",
+  "image": "https://data.cryptoninjapartners.com/images/7156.png",
+  "character": "Orochi",
+  "price_eth": 0.101,
+  "price_jpy": 32269,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0xE545c0D41c622bCCCc8f103c0607D042A2242350",
+  "tx": "0x51b3101ba9d41cabc04734b24745b754cc165de886bf1a628e7ff38e05fcb572"
+ }
+]

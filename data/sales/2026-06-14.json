@@ -1,0 +1,86 @@
+[
+ {
+  "date": "2026-06-14",
+  "time": "22:16",
+  "token": "21058",
+  "image": "https://data.cryptoninjapartners.com/images/21058.png",
+  "character": "Orochi",
+  "price_eth": 0.107,
+  "price_jpy": 28895,
+  "from": "0xC06999b25073Ba34a83e215790908eFf930e1f79",
+  "to": "0x8c7c6471FE43Ba2C5fAb69f3279e3Ddf18CA665C",
+  "tx": "0x7cd2f17ecca5f30f45028eeb70e8ed68c279a2f27ae8fbe148c07a5722e47f5a"
+ },
+ {
+  "date": "2026-06-14",
+  "time": "22:15",
+  "token": "9674",
+  "image": "https://data.cryptoninjapartners.com/images/9674.png",
+  "character": "Narukami",
+  "price_eth": 0.11,
+  "price_jpy": 29688,
+  "from": "0xC06999b25073Ba34a83e215790908eFf930e1f79",
+  "to": "0x04131e8d773acF5641F1CD726285ae1a2b3aC3A1",
+  "tx": "0xfac998764b5b95e23b3d9a6148e6305267f2b50e8f22f237605b10279242addf"
+ },
+ {
+  "date": "2026-06-14",
+  "time": "22:14",
+  "token": "13859",
+  "image": "https://data.cryptoninjapartners.com/images/13859.png",
+  "character": "Orochi",
+  "price_eth": 0.111,
+  "price_jpy": 29985,
+  "from": "0xC06999b25073Ba34a83e215790908eFf930e1f79",
+  "to": "0xB5b36460db377194097C2Ff8CEce02F67466b14A",
+  "tx": "0x4eed71fb9a7bb1953ef905847b916ff75ca51793939704fba5aa81fe191b523c"
+ },
+ {
+  "date": "2026-06-14",
+  "time": "11:08",
+  "token": "6298",
+  "image": "https://data.cryptoninjapartners.com/images/6298.png",
+  "character": "Mitama",
+  "price_eth": 0.178,
+  "price_jpy": 48495,
+  "from": "0x8B5bb33dB6D3C4fc87A4c20C939aFfF0544B3236",
+  "to": "0xcb99DbDDCcc014276b3Bd58Cd77c4070F2676c2B",
+  "tx": "0x7da63e895a96badff5c63f9c362b282b63f61966a887d17e9fb2ce31e1d2d3bc"
+ },
+ {
+  "date": "2026-06-14",
+  "time": "10:31",
+  "token": "9404",
+  "image": "https://data.cryptoninjapartners.com/images/9404.png",
+  "character": "Mitama",
+  "price_eth": 0.22,
+  "price_jpy": 59818,
+  "from": "0x4Eb4Cc3517777317463Ac297C86C6fd5Fb8780c8",
+  "to": "0x800579a749d9c8d339e33264331937BBcb2BB1Fc",
+  "tx": "0x7940063f8a29f3fd4d8f976905919cc119d3dafd6721761dec45d25cd6402b0f"
+ },
+ {
+  "date": "2026-06-14",
+  "time": "10:06",
+  "token": "8470",
+  "image": "https://data.cryptoninjapartners.com/new/images/makami/1978.png",
+  "character": "Makami",
+  "price_eth": 0.22,
+  "price_jpy": 59818,
+  "from": "0xD450592E47975f632B9A88DdA3a6a4de3A2021dD",
+  "to": "0x4D62734dFB26b6F26bEDdb753269e0A632EFa169",
+  "tx": "0x57b2173562a167b0368406475e686c25f5cdcd1e048f0a4960c2262e6ca360e2"
+ },
+ {
+  "date": "2026-06-14",
+  "time": "00:27",
+  "token": "1919",
+  "image": "https://data.cryptoninjapartners.com/towasetsuna/images/1573.png",
+  "character": "Setsuna",
+  "price_eth": 0.18,
+  "price_jpy": 48848,
+  "from": "0xA2ea851BaeC8A4d5D68e087a2D2da35BF36F5616",
+  "to": "0xE3e3F503Fd6f9F2cbEf4B46BB76827D46b675202",
+  "tx": "0x3875590aef7196aca95b6c4c137159de119d8bd0b9534dccf39c3a9bf17e9b98"
+ }
+]

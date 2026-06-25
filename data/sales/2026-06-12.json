@@ -1,0 +1,14 @@
+[
+ {
+  "date": "2026-06-12",
+  "time": "21:15",
+  "token": "13249",
+  "image": "https://data.cryptoninjapartners.com/images/13249.png",
+  "character": "Mitama",
+  "price_eth": 0.22,
+  "price_jpy": 59505,
+  "from": "0x4Eb4Cc3517777317463Ac297C86C6fd5Fb8780c8",
+  "to": "0xaD79bbd83092c7B408E24De3ee665AC4b03718ec",
+  "tx": "0xbef536111464b601186d6406abba989b4b88e33c2734696f53a30e8f727845c9"
+ }
+]

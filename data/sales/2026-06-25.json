@@ -1,0 +1,14 @@
+[
+ {
+  "date": "2026-06-25",
+  "time": "17:27",
+  "token": "22825",
+  "image": "https://data.cryptoninjapartners.com/images/22825.png",
+  "character": "Luna",
+  "price_eth": 0.19,
+  "price_jpy": 50945,
+  "from": "0xcc38a5d95677CFc77a2B46d2268C3aaE5b8D5602",
+  "to": "0xf15b2D971B9b320d931B5264Df47af3B4DB82981",
+  "tx": "0x943fb482e29f593324f9a91e7175e41173258791f3ba05718779c175127a855d"
+ }
+]

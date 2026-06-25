@@ -310,12 +310,51 @@
     $('date-note').className = 'note';
     $('date-note').textContent = (H.dates[i] === iso0) ? '' : `${H.dates[i]} 時点の全データを表示しています。`;
   }
+  // ---------- セールス明細（NFTT） ----------
+  const CONTRACT = '0x138A5C693279b6Cd82F48d4bEf563251Bc15ADcE';
+  const shortAddr = (a) => a ? a.slice(0, 6) + '…' + a.slice(-4) : '--';
+  let SALES_SEQ = 0;
+  function renderSales(iso) {
+    const panel = $('sales-panel');
+    const seq = ++SALES_SEQ;
+    panel.innerHTML = `<div class="sales-head">🧾 ${iso} のセールス明細</div><div class="note">読み込み中…</div>`;
+    fetch(`data/sales/${iso}.json`).then(r => r.ok ? r.json() : null).catch(() => null).then(sales => {
+      if (seq !== SALES_SEQ) return; // 日付が変わっていたら破棄
+      if (!sales || !sales.length) {
+        panel.innerHTML = `<div class="sales-head">🧾 ${iso} のセールス明細</div>` +
+          `<div class="note">この日のセールス記録はありません（明細の自動記録を順次蓄積しています）。</div>`;
+        return;
+      }
+      let h = `<div class="sales-head">🧾 ${iso} のセールス（${sales.length}件）</div><div class="sales-list">`;
+      for (const s of sales) {
+        const item = s.token ? `https://opensea.io/item/ethereum/${CONTRACT}/${s.token}` : '#';
+        const jpy = s.price_jpy != null ? `¥${Number(s.price_jpy).toLocaleString('ja-JP')}` : '';
+        h += `<div class="sale">` +
+          `<a class="sale-img" href="${item}" target="_blank" rel="noopener" title="OpenSeaで#${s.token}を見る">` +
+          `${s.image ? `<img src="${s.image}" alt="#${s.token}" loading="lazy">` : ''}` +
+          `<span class="sale-tok">#${s.token || '?'}</span></a>` +
+          `<div class="sale-main">` +
+          `<div class="sale-top"><span class="sale-char">${s.character || ''}</span><span class="sale-time">${s.time || ''}</span></div>` +
+          `<div class="sale-price">${eth(s.price_eth, s.price_eth < 1 ? 3 : 2)} <span class="unit">ETH</span>${jpy ? `<small>${jpy}</small>` : ''}</div>` +
+          `<div class="sale-addr">` +
+          `<a href="https://opensea.io/${s.from}" target="_blank" rel="noopener" title="送信元">${shortAddr(s.from)}</a>` +
+          `<span class="arrow">→</span>` +
+          `<a href="https://opensea.io/${s.to}" target="_blank" rel="noopener" title="受信先">${shortAddr(s.to)}</a>` +
+          `${s.tx ? `<a class="sale-tx" href="https://etherscan.io/tx/${s.tx}" target="_blank" rel="noopener">tx↗</a>` : ''}` +
+          `</div></div></div>`;
+      }
+      h += '</div>';
+      panel.innerHTML = h;
+    });
+  }
+
   let iso0 = '';
   function showDate(iso) {
     const i = idxByDate(iso);
     if (i < 0) return;
     $('date-picker').value = HISTORY.dates[i];
     renderDayTable(i);
+    renderSales(HISTORY.dates[i]);
   }
   function setupDateControls() {
     const ds = HISTORY.dates, picker = $('date-picker');

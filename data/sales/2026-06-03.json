@@ -1,0 +1,50 @@
+[
+ {
+  "date": "2026-06-03",
+  "time": "22:39",
+  "token": "12493",
+  "image": "https://data.cryptoninjapartners.com/towasetsuna/images/105.png",
+  "character": "Towa",
+  "price_eth": 0.135,
+  "price_jpy": 40842,
+  "from": "0xcBc3F8d12bd907a538452E3cB198AC951C36819E",
+  "to": "0x3036D113F2e280b4Ee8Dfe80eAF74dc25A3edf82",
+  "tx": "0x7edfb1b7f4335e547aa966ef2a2d05984f75eba167b2e9a6768f4312c23fa017"
+ },
+ {
+  "date": "2026-06-03",
+  "time": "19:38",
+  "token": "6620",
+  "image": "https://data.cryptoninjapartners.com/images/6620.png",
+  "character": "Narukami",
+  "price_eth": 0.101,
+  "price_jpy": 30584,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
+  "tx": "0xf8892c2c03218ba86f82dd5bdc7a2311f5001dfe76637b40fea729023cc454c2"
+ },
+ {
+  "date": "2026-06-03",
+  "time": "19:37",
+  "token": "9620",
+  "image": "https://data.cryptoninjapartners.com/images/9620.png",
+  "character": "Orochi",
+  "price_eth": 0.101,
+  "price_jpy": 30584,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0xE545c0D41c622bCCCc8f103c0607D042A2242350",
+  "tx": "0x42773d32189b72f5dfdb24baf138e3a8d7f7a8abbdb1e3c3e33698f13c27be6b"
+ },
+ {
+  "date": "2026-06-03",
+  "time": "19:36",
+  "token": "8118",
+  "image": "https://data.cryptoninjapartners.com/images/8118.png",
+  "character": "Narukami",
+  "price_eth": 0.105,
+  "price_jpy": 31795,
+  "from": "0x0cfEe65A6ADe0A7Fb273aBE5106a0473F97107a7",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0xbc04b30e25dbbc5809d6dfd99038e328746d05178edfe750f32529a5d18934bf"
+ }
+]

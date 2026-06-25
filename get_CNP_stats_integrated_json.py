@@ -508,6 +508,120 @@ class CNPStatsIntegrated:
         except Exception as e:
             print(f"  ✗ offers.json 保存エラー: {str(e)}")
 
+    def get_nftt_sales(self, max_scrolls=18):
+        """NFTTアクティビティから直近のセールス明細を取得する。
+        各行: 日時 / 価格(ETH・円) / キャラ / NFTトークン番号・画像 / from→to アドレス / Txハッシュ。
+        """
+        try:
+            self.reset_page()
+            print("\n" + "=" * 60)
+            print("=== NFTT: セールス明細取得 ===")
+            print("=" * 60)
+            self.page.goto(self.nftt_url, wait_until='domcontentloaded')
+            try:
+                self.page.wait_for_load_state('networkidle', timeout=30000)
+            except:
+                pass
+            time.sleep(8)
+            # 直近24時間程度を読み込むためスクロール
+            for _ in range(max_scrolls):
+                try:
+                    self.page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
+                    self.page.wait_for_timeout(1500)
+                except Exception:
+                    break
+
+            sales = []
+            seen = set()
+            for row in self.page.locator('tr').all():
+                try:
+                    txt = (row.text_content() or '').strip()
+                    if 'ETH' not in txt:
+                        continue
+                    if '移動' in txt or 'Transfer' in txt:
+                        continue
+                    m_dt = re.search(r'(\d{4})/(\d{2})/(\d{2})\s+(\d{2}:\d{2})', txt)
+                    if not m_dt:
+                        continue
+                    iso_date = f"{m_dt.group(1)}-{m_dt.group(2)}-{m_dt.group(3)}"
+                    tm = m_dt.group(4)
+                    # 価格は .price セルから個別に取る（行テキストはトークン番号と連結するため不可）
+                    price_el = row.locator('.price').first
+                    if price_el.count() == 0:
+                        continue
+                    ptxt = price_el.text_content() or ''
+                    m_eth = re.search(r'([\d.]+)\s*W?ETH', ptxt)
+                    if not m_eth:
+                        continue
+                    price_eth = float(m_eth.group(1))
+                    if price_eth <= 0:
+                        continue
+                    m_jpy = re.search(r'[¥￥]\s*([\d,]+)', ptxt)
+                    jpy = int(m_jpy.group(1).replace(',', '')) if m_jpy else None
+                    html = row.inner_html()
+                    m_tok = re.search(r'alt="#(\d+)"', html)
+                    token = m_tok.group(1) if m_tok else None
+                    m_img = re.search(r'src="(https://data\.cryptoninjapartners\.com/[^"]+\.png)"', html)
+                    image = m_img.group(1) if m_img else None
+                    addrs = re.findall(r'etherscan\.io/address/(0x[a-fA-F0-9]{40})', html)
+                    frm = addrs[0] if len(addrs) >= 1 else None
+                    to = addrs[1] if len(addrs) >= 2 else None
+                    m_tx = re.search(r'etherscan\.io/tx/(0x[a-fA-F0-9]{64})', html)
+                    tx = m_tx.group(1) if m_tx else None
+                    char = next((c for c in self.characters if c in txt), '')
+                    key = (tx, token)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    sales.append({
+                        'date': iso_date, 'time': tm, 'token': token, 'image': image,
+                        'character': char, 'price_eth': price_eth, 'price_jpy': jpy,
+                        'from': frm, 'to': to, 'tx': tx,
+                    })
+                except Exception:
+                    continue
+            print(f"NFTTセールス明細: {len(sales)}件取得")
+            return sales
+        except Exception as e:
+            print(f"✗ NFTT セールス明細取得エラー: {str(e)}")
+            return []
+
+    def save_sales_json(self, sales):
+        """セールス明細を日付ごとに data/sales/YYYY-MM-DD.json へマージ保存（tx+tokenで重複排除）。"""
+        import json
+        try:
+            data_dir = os.path.join(self.base_dir, "data", "sales")
+            os.makedirs(data_dir, exist_ok=True)
+            by_date = {}
+            for s in sales:
+                by_date.setdefault(s['date'], []).append(s)
+            total = 0
+            for date, items in by_date.items():
+                path = os.path.join(data_dir, f"{date}.json")
+                existing = []
+                if os.path.exists(path):
+                    try:
+                        with open(path, "r", encoding="utf-8") as f:
+                            existing = json.load(f)
+                    except Exception:
+                        existing = []
+                seen = {(e.get('tx'), e.get('token')) for e in existing}
+                merged = existing + [s for s in items if (s.get('tx'), s.get('token')) not in seen]
+                merged.sort(key=lambda x: x.get('time', ''), reverse=True)
+                with open(path, "w", encoding="utf-8") as f:
+                    json.dump(merged, f, ensure_ascii=False, indent=1)
+                total += len(merged)
+            # 索引（advanced の日付ピッカー用）
+            files = sorted(
+                fn[:-5] for fn in os.listdir(data_dir)
+                if fn.endswith(".json") and fn != "index.json"
+            )
+            with open(os.path.join(data_dir, "index.json"), "w", encoding="utf-8") as f:
+                json.dump(files, f, ensure_ascii=False)
+            print(f"  ✓ sales 保存: {len(by_date)}日分（合計{total}件） -> {data_dir}")
+        except Exception as e:
+            print(f"  ✗ sales 保存エラー: {str(e)}")
+
     def get_os_header_stats(self):
         """OpenSeaからヘッダー情報を取得"""
         try:
@@ -956,6 +1070,10 @@ class CNPStatsIntegrated:
             nftt_offers = self.get_nftt_offers()
             self.save_offers_json(nftt_offers)
 
+            # 2c. NFTT Sales 明細 → data/sales/YYYY-MM-DD.json
+            nftt_sales = self.get_nftt_sales()
+            self.save_sales_json(nftt_sales)
+
             # 3. OpenSea Header
             os_header = self.get_os_header_stats()
             
@@ -1370,6 +1488,19 @@ if __name__ == "__main__":
             if scraper.browser:
                 scraper.browser.close()
         print("\n✓ offers 取得完了（offers-only）")
+        sys.exit(0)
+
+    # `--sales-only` で NFTT セールス明細だけ取得して data/sales/ を更新
+    if "--sales-only" in sys.argv:
+        scraper = CNPStatsIntegrated()
+        scraper.setup_browser()
+        try:
+            sales = scraper.get_nftt_sales()
+            scraper.save_sales_json(sales)
+        finally:
+            if scraper.browser:
+                scraper.browser.close()
+        print("\n✓ sales 取得完了（sales-only）")
         sys.exit(0)
 
     print("="*60)
