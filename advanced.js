@@ -148,7 +148,7 @@
     return `${m}月${d}日(${WD[w]})`;
   }
   function addDays(iso, n) {
-    const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n);
+    const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n);
     return d.toISOString().slice(0, 10);
   }
   // 取得日時（= 対象日の翌日 + 保存済み時刻）の表示。過去日でも可能な限り出す。
@@ -282,7 +282,7 @@
     return best;
   }
   function shiftDays(iso, n) {
-    const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n);
+    const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n);
     return d.toISOString().slice(0, 10);
   }
   function renderDayTable(i) {
@@ -301,7 +301,7 @@
         `<td>${rightLabel}</td><td class="mono">${rightVal}</td></tr>`;
     };
     const sec = (t) => `<tr class="seclabel"><td colspan="5">${t}</td></tr>`;
-    let h = `<table class="t"><caption>${jpDate(H.dates[i])} の記録 ${collLabel(i)}</caption>` +
+    let h = `<table class="t"><caption>${jpDate(H.dates[i])} の記録 <span class="cap-sub">${collLabel(i)}</span></caption>` +
       `<thead><tr><th>項目</th><th>Price(ETH)</th><th>前日差</th><th>Price(JPY)</th><th>前日差</th></tr></thead><tbody>`;
     h += sec('本日データ');
     h += moneyRow('最安価格（フロア）', A.floor, 3);

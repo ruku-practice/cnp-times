@@ -116,7 +116,8 @@ input[type="date"], select {
 
 /* ===== Table ===== */
 table.t { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 460px; }
-table.t caption { text-align: left; font-weight: 700; padding: 6px 2px 10px; font-size: 14px; }
+table.t caption { text-align: left; font-weight: 700; padding: 6px 2px 10px; font-size: 12.5px; }
+table.t caption .cap-sub { font-size: 11px; font-weight: 500; color: var(--text-dim); margin-left: 4px; }
 table.t th, table.t td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: right; }
 table.t th:first-child, table.t td:first-child { text-align: left; }
 table.t thead th { color: var(--text-dim); font-weight: 600; font-size: 11.5px; border-bottom: 2px solid var(--border); }
