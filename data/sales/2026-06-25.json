@@ -1,6 +1,18 @@
 [
  {
   "date": "2026-06-25",
+  "time": "18:48",
+  "token": "16421",
+  "image": "https://data.cryptoninjapartners.com/images/16421.png",
+  "character": "Mitama",
+  "price_eth": 0.184,
+  "price_jpy": 49064,
+  "from": "0x12d94456564Ea6B911b4062f234cAc40d9C68A00",
+  "to": "0x493Da0cDe8cbe456d096D296B88550a703939354",
+  "tx": "0x29fa7dc1a32758b78201b02d0451960166a007bc7a48b73a01d913121cf51068"
+ },
+ {
+  "date": "2026-06-25",
   "time": "17:27",
   "token": "22825",
   "image": "https://data.cryptoninjapartners.com/images/22825.png",
