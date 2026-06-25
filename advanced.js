@@ -348,6 +348,21 @@
   // ---------- セールス明細（NFTT） ----------
   const CONTRACT = '0x138A5C693279b6Cd82F48d4bEf563251Bc15ADcE';
   const shortAddr = (a) => a ? a.slice(0, 6) + '…' + a.slice(-4) : '--';
+  // ニックネーム（あれば）＋アドレスのリンク。無ければアドレスのみ。
+  function walletHtml(addr, title) {
+    if (!addr) return '<span>--</span>';
+    const w = (WALLETS || {})[addr.toLowerCase()] || {};
+    const inner = w.name
+      ? `${w.name} <span class="waddr">(${shortAddr(addr)})</span>`
+      : shortAddr(addr);
+    return `<a href="https://opensea.io/${addr}" target="_blank" rel="noopener" title="${title}">${inner}</a>`;
+  }
+  // 受信先の現在のCNP保有数バッジ
+  function cnpBadge(addr) {
+    if (!addr) return '';
+    const c = ((WALLETS || {})[addr.toLowerCase()] || {}).cnp;
+    return (c != null) ? `<span class="sale-cnp" title="受信先の現在のCNP保有数">🐤${c}</span>` : '';
+  }
   let SALES_SEQ = 0;
   function renderSales(iso) {
     const panel = $('sales-panel');
@@ -372,9 +387,10 @@
           `<div class="sale-top"><span class="sale-char">${s.character || ''}</span><span class="sale-time">${s.time || ''}</span></div>` +
           `<div class="sale-price">${eth(s.price_eth, s.price_eth < 1 ? 3 : 2)} <span class="unit">ETH</span>${jpy ? `<small>${jpy}</small>` : ''}</div>` +
           `<div class="sale-addr">` +
-          `<a href="https://opensea.io/${s.from}" target="_blank" rel="noopener" title="送信元">${shortAddr(s.from)}</a>` +
+          walletHtml(s.from, '送信元') +
           `<span class="arrow">→</span>` +
-          `<a href="https://opensea.io/${s.to}" target="_blank" rel="noopener" title="受信先">${shortAddr(s.to)}</a>` +
+          walletHtml(s.to, '受信先') +
+          cnpBadge(s.to) +
           `${s.tx ? `<a class="sale-tx" href="https://etherscan.io/tx/${s.tx}" target="_blank" rel="noopener">tx↗</a>` : ''}` +
           `</div></div></div>`;
       }
@@ -407,10 +423,15 @@
   }
 
   // ---------- boot ----------
-  let HISTORY = null, OFFERS = null;
-  Promise.all([fetchJSON('html2_data.json'), fetchJSON('data/history.json'), fetchJSON('data/offers.json').catch(() => null)])
-    .then(([html2, history, offers]) => {
-      HISTORY = history; OFFERS = offers;
+  let HISTORY = null, OFFERS = null, WALLETS = {};
+  Promise.all([
+    fetchJSON('html2_data.json'),
+    fetchJSON('data/history.json'),
+    fetchJSON('data/offers.json').catch(() => null),
+    fetchJSON('data/wallets.json').catch(() => ({}))
+  ])
+    .then(([html2, history, offers, wallets]) => {
+      HISTORY = history; OFFERS = offers; WALLETS = wallets || {};
       HISTORY.dates.forEach((d, i) => DATE_IDX[d] = i);
       $('loader').classList.add('hidden');
       $('main').classList.remove('hidden');

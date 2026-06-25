@@ -20,6 +20,7 @@ class CNPStatsIntegrated:
         # NFTT Activity URL
         self.nftt_url = "https://cryptoninja.nftt.market/activity?collection=0x138A5C693279b6Cd82F48d4bEf563251Bc15ADcE"
         self.os_base_url = "https://opensea.io/collection/cryptoninjapartners-v2"
+        self.cnp_contract = "0x138A5C693279b6Cd82F48d4bEf563251Bc15ADcE"  # CNP NFTコントラクト（balanceOf用）
         self.characters = ['Orochi', 'Mitama', 'Narukami', 'Leelee', 'Luna', 'Yama', 'Makami', 'Towa', 'Setsuna', 'Ema', 'Taruto']
         
         # 認証情報の解決
@@ -39,7 +40,10 @@ class CNPStatsIntegrated:
 
         # スクリプト自身のディレクトリ（リポジトリのルート）を出力先の基準にする
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
-        
+
+        # OpenSea API キー（任意）。あればウォレットのニックネームを公式APIで解決する。
+        self.opensea_key = os.getenv('OPENSEA_API_KEY', '')
+
         # Google Sheetsの認証設定
         self.scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
         self.credentials = Credentials.from_service_account_file(
@@ -622,6 +626,90 @@ class CNPStatsIntegrated:
         except Exception as e:
             print(f"  ✗ sales 保存エラー: {str(e)}")
 
+    def _os_name(self, address):
+        """OpenSea公式API(v2)でニックネーム(username)を取得（APIキーが無い/無ければ None）。
+        ※プロフィールページのタイトルは常にアドレスのため、名前はAPI経由でのみ取得可能。
+        """
+        if not self.opensea_key:
+            return None
+        import urllib.request
+        import json as _json
+        try:
+            req = urllib.request.Request(
+                f"https://api.opensea.io/api/v2/accounts/{address}",
+                headers={"X-API-KEY": self.opensea_key, "Accept": "application/json", "User-Agent": "Mozilla/5.0"})
+            r = _json.loads(urllib.request.urlopen(req, timeout=12).read())
+            u = (r.get("username") or "").strip()
+            return u or None
+        except Exception:
+            return None
+
+    def _cnp_balance(self, address):
+        """無料の公開RPCで受信ウォレットのCNP保有数（balanceOf）を取得。"""
+        import urllib.request
+        import json as _json
+        data = '0x70a08231' + '0' * 24 + address.lower().replace('0x', '')
+        payload = {"jsonrpc": "2.0", "id": 1, "method": "eth_call",
+                   "params": [{"to": self.cnp_contract, "data": data}, "latest"]}
+        for rpc in ("https://ethereum-rpc.publicnode.com", "https://1rpc.io/eth"):
+            try:
+                req = urllib.request.Request(
+                    rpc, data=_json.dumps(payload).encode(),
+                    headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
+                r = _json.loads(urllib.request.urlopen(req, timeout=12).read())
+                res = r.get("result")
+                if res and res != "0x":
+                    return int(res, 16)
+            except Exception:
+                continue
+        return None
+
+    def enrich_wallets(self, sales, name_cap=20, cnp_cap=80):
+        """セールスの送受信ウォレットについて OpenSea名 と CNP保有数 を解決し data/wallets.json にキャッシュ。"""
+        import json as _json
+        try:
+            path = os.path.join(self.base_dir, "data", "wallets.json")
+            cache = {}
+            if os.path.exists(path):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        cache = _json.load(f)
+                except Exception:
+                    cache = {}
+            # ユニークなアドレス（受信先=保有数が意味あるので先に）
+            addrs = []
+            for s in sales:
+                for a in (s.get("to"), s.get("from")):
+                    if a and a.lower() not in addrs:
+                        addrs.append(a.lower())
+            # 名前: OpenSea APIキーがある場合のみ、未解決を name_cap まで
+            n_done = 0
+            if self.opensea_key:
+                for a in addrs:
+                    if cache.get(a, {}).get("name_done"):
+                        continue
+                    if n_done >= name_cap:
+                        break
+                    nm = self._os_name(a)
+                    cache.setdefault(a, {})["name"] = nm
+                    cache[a]["name_done"] = True
+                    n_done += 1
+            # CNP保有数: cnp_cap まで（変動するので毎回更新）
+            c_done = 0
+            for a in addrs:
+                if c_done >= cnp_cap:
+                    break
+                bal = self._cnp_balance(a)
+                if bal is not None:
+                    cache.setdefault(a, {})["cnp"] = bal
+                c_done += 1
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as f:
+                _json.dump(cache, f, ensure_ascii=False, indent=1)
+            print(f"  ✓ wallets: 名前解決+{n_done} / CNP保有更新{c_done} / cache計{len(cache)}件")
+        except Exception as e:
+            print(f"  ✗ enrich_wallets エラー: {str(e)}")
+
     def get_os_header_stats(self):
         """OpenSeaからヘッダー情報を取得"""
         try:
@@ -1070,9 +1158,10 @@ class CNPStatsIntegrated:
             nftt_offers = self.get_nftt_offers()
             self.save_offers_json(nftt_offers)
 
-            # 2c. NFTT Sales 明細 → data/sales/YYYY-MM-DD.json
+            # 2c. NFTT Sales 明細 → data/sales/YYYY-MM-DD.json + ウォレット名/CNP保有数
             nftt_sales = self.get_nftt_sales()
             self.save_sales_json(nftt_sales)
+            self.enrich_wallets(nftt_sales)
 
             # 3. OpenSea Header
             os_header = self.get_os_header_stats()
@@ -1526,6 +1615,7 @@ if __name__ == "__main__":
         try:
             sales = scraper.get_nftt_sales()
             scraper.save_sales_json(sales)
+            scraper.enrich_wallets(sales)
         finally:
             if scraper.browser:
                 scraper.browser.close()

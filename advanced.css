@@ -149,7 +149,10 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
   align-items: center; flex-wrap: wrap; }
 .sale-addr a { color: var(--accent-2); text-decoration: none; }
 .sale-addr a:hover { text-decoration: underline; }
+.sale-addr .waddr { color: var(--text-dim); font-weight: 400; }
 .sale-addr .arrow { color: var(--text-dim); }
+.sale-cnp { background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+  padding: 0 7px; font-size: 11px; color: var(--accent); font-weight: 700; }
 .sale-tx { margin-left: auto; color: var(--accent) !important; }
 
 /* ===== Chart ===== */
