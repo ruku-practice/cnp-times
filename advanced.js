@@ -295,24 +295,28 @@
       return `<tr><td>${name}</td><td class="mono">${eth(cur, dec)}</td>${diffCell(cur, pv, dec)}` +
         `<td class="mono">${yen(jv(cur))}</td>${diffCell(jv(cur), prev != null ? jv(arr[prev]) : null, 0, true)}</tr>`;
     };
-    const countRow = (name, arr, rightLabel, rightVal) => {
+    // 件数メトリクス（単位は件/%なので左寄せ。Price(JPY)列は空欄）
+    const countRow = (name, arr) => {
       const cur = arr[i], pv = prev != null ? arr[prev] : null;
-      return `<tr><td>${name}</td><td class="mono">${nf(cur)}</td>${diffCell(cur, pv, 0)}` +
-        `<td>${rightLabel}</td><td class="mono">${rightVal}</td></tr>`;
+      return `<tr><td>${name}</td><td class="mono">${nf(cur)}</td>${diffCell(cur, pv, 0)}<td></td><td></td></tr>`;
     };
     const sec = (t) => `<tr class="seclabel"><td colspan="5">${t}</td></tr>`;
     let h = `<table class="t"><caption>${jpDate(H.dates[i])} の記録 <span class="cap-sub">${collLabel(i)}</span></caption>` +
-      `<thead><tr><th>項目</th><th>Price(ETH)</th><th>前日差</th><th>Price(JPY)</th><th>前日差</th></tr></thead><tbody>`;
+      `<thead><tr><th>項目</th><th>Price(ETH)/件</th><th>前日差</th><th>Price(JPY)</th><th>前日差</th></tr></thead><tbody>`;
     h += sec('本日データ');
     h += moneyRow('最安価格（フロア）', A.floor, 3);
     h += moneyRow('平均販売価格', G.avg, 3);
     h += moneyRow('日次トータル販売額', G.day_volume, 4);
     h += moneyRow('時価総額', G.mcap, 0);
     h += moneyRow('累計取引量', G.volume, 1);
-    h += countRow('オーナー数', G.owners, 'セールス数(24h)', nf(G.sales[i]));
-    const rate = (A.listed[i] != null && G.supply[i]) ? (A.listed[i] / G.supply[i] * 100).toFixed(2) + '%'
-      : (A.listed[i] != null ? (A.listed[i] / 22222 * 100).toFixed(2) + '%' : '--');
-    h += countRow('出品数', A.listed, '出品率', rate);
+    h += countRow('オーナー数', G.owners);
+    h += countRow('セールス数(24h)', G.sales);
+    h += countRow('出品数', A.listed);
+    // 出品率（%表示・前日差はポイント差）
+    const rateAt = (k) => (k != null && A.listed[k] != null) ? (A.listed[k] / (G.supply[k] || 22222) * 100) : null;
+    const rCur = rateAt(i), rPrev = rateAt(prev);
+    h += `<tr><td>出品率</td><td class="mono">${rCur != null ? rCur.toFixed(2) + '%' : '--'}</td>` +
+      `${diffCell(rCur, rPrev, 2)}<td></td><td></td></tr>`;
     // characters
     h += `<tr class="seclabel"><td>キャラクター</td><td>Price(ETH)</td><td>前日差</td><td>リスト数 (率)</td><td>前日差</td></tr>`;
     for (const c of CHARS) {
