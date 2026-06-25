@@ -1055,8 +1055,8 @@ class CNPStatsIntegrated:
         except Exception as e:
             print(f"  ✗ JSON エクスポート処理全体でエラーが発生しました: {str(e)}")
 
-    def run(self):
-        """メイン実行関数"""
+    def run(self, write_sheet=True):
+        """メイン実行関数。write_sheet=False でスプレッドシートへの書き込みをスキップ（調整・テスト用）。"""
         try:
             self.setup_browser()
             
@@ -1101,13 +1101,16 @@ class CNPStatsIntegrated:
                  d = merged_chars.get(char, {})
                  print(f"  {char}: リスト {d.get('list_count')}, フロア {d.get('floor_price')}")
 
-            # スプレッドシート更新
-            self.update_spreadsheet(
-                merged_header, os_header, nftt_activity,
-                nftt_listings, # 追加
-                merged_chars, os_chars
-            )
-            
+            # スプレッドシート更新（--no-sheet 指定時はスキップ）
+            if write_sheet:
+                self.update_spreadsheet(
+                    merged_header, os_header, nftt_activity,
+                    nftt_listings, # 追加
+                    merged_chars, os_chars
+                )
+            else:
+                print("\n  ⏭ --no-sheet: スプレッドシートへの書き込みをスキップしました（列は追加されません）")
+
             # ローカルJSONファイルとしてエクスポート
             self.export_sheets_to_json()
 
@@ -1524,11 +1527,16 @@ if __name__ == "__main__":
         print("\n✓ sales 取得完了（sales-only）")
         sys.exit(0)
 
+    # `--no-sheet` でスプレッドシートへの書き込みをスキップ（調整・テスト用。列を増やさない）
+    no_sheet = "--no-sheet" in sys.argv
+
     print("="*60)
     print("CNP統計情報 統合取得スクリプト (OS + NFTT)")
+    if no_sheet:
+        print("  [--no-sheet] スプレッドシートには書き込みません")
     print("="*60)
     scraper = CNPStatsIntegrated()
-    result = scraper.run()
+    result = scraper.run(write_sheet=not no_sheet)
     
     if result:
         print("\n✓ スクリプト実行完了")

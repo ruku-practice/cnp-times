@@ -93,30 +93,43 @@
       `<div class="v mono">${vMain || '--'}${u}${vSmall ? `<small>${vSmall}</small>` : ''}</div>` +
       (diff != null && txt(diff) !== '' ? `<div>${diffPill(diff)}</div>` : '') + `</div>`;
   }
+  // 円を 億/万/円 で見やすく整形
+  function yenSmart(v) {
+    if (v == null) return '--';
+    const a = Math.abs(v);
+    if (a >= 1e8) return '¥' + (v / 1e8).toFixed(1) + '億';
+    return '¥' + Math.round(v).toLocaleString('ja-JP');
+  }
   function renderToday(p) {
-    const H = HISTORY, li = H.dates.length - 1, ej = H.eth_jpy[li];
-    const jpyOf = (v) => (v != null && ej != null) ? `¥${Math.round(v * ej).toLocaleString('ja-JP')}` : '';
-    const dayVol = H.agg.day_volume[li];      // 日次トータル販売額（NFTT）
-    const totalVol = H.agg.volume[li];        // 累計取引量（補正済み）
-    const O = OFFERS || {};                    // オファー情報（NFTT）
+    // すべて history（対象日 = 取得日の前日＝0:00時点）から算出して整合させる
+    const H = HISTORY, li = H.dates.length - 1, prev = li > 0 ? li - 1 : null, ej = H.eth_jpy[li];
+    const A = H.all, G = H.agg, O = OFFERS || {};
+    const jpyOf = (v) => (v != null && ej != null) ? yenSmart(v * ej) : '';
+    // 前日差（li=対象日 と prev=その前日）
+    const dd = (arr, dec, comma) => {
+      if (prev == null || arr[li] == null || arr[prev] == null) return null;
+      const v = arr[li] - arr[prev];
+      return (v > 0 ? '+' : '') + (comma ? Math.round(v).toLocaleString('ja-JP') : v.toFixed(dec));
+    };
+    const rate = A.listed[li] != null ? (A.listed[li] / (G.supply[li] || 22222) * 100).toFixed(2) + '%' : '';
     // CNP の情報（上段）
     $('today-cards').innerHTML = [
-      card('最安フロア', p.floor.eth, 'ETH', p.floor.jpy ? `¥${p.floor.jpy}` : '', p.floor.ethDiff),
-      card('平均販売価格', p.avg.eth, 'ETH', p.avg.jpy ? `¥${p.avg.jpy}` : '', p.avg.ethDiff),
-      card('日次トータル販売額', eth(dayVol, 4), 'ETH', jpyOf(dayVol), null),
-      card('時価総額', p.marketcap.jpy, '円', p.marketcap.eth ? `${p.marketcap.eth} ETH` : '', p.marketcap.jpyDiff),
-      card('累計取引量', nf(totalVol, 1), 'ETH', jpyOf(totalVol), null),
-      card('オーナー数', p.owners.count, '', '', p.owners.diff),
-      card('出品数', p.listed.count, '', p.listed.rate ? `率 ${p.listed.rate}` : '', p.listed.diff),
-      card('セールス数 (24h)', p.owners.sales, '', '', null),
+      card('最安フロア', eth(A.floor[li], 3), 'ETH', jpyOf(A.floor[li]), dd(A.floor, 3)),
+      card('平均販売価格', eth(G.avg[li], 3), 'ETH', jpyOf(G.avg[li]), dd(G.avg, 3)),
+      card('日次トータル販売額', eth(G.day_volume[li], 4), 'ETH', jpyOf(G.day_volume[li]), null),
+      card('時価総額', nf(G.mcap[li], 0), 'ETH', jpyOf(G.mcap[li]), dd(G.mcap, 0, true)),
+      card('累計取引量', nf(G.volume[li], 1), 'ETH', jpyOf(G.volume[li]), null),
+      card('オーナー数', G.owners[li] != null ? nf(G.owners[li]) : '--', '件', '', dd(G.owners, 0)),
+      card('出品数', A.listed[li] != null ? nf(A.listed[li]) : '--', '点', rate ? `率 ${rate}` : '', dd(A.listed, 0)),
+      card('セールス数 (24h)', G.sales[li] != null ? nf(G.sales[li]) : '--', '件', '', dd(G.sales, 0)),
       card('トップオファー', eth(O.top_offer, 3), 'WETH', jpyOf(O.top_offer), null),
       card('オファー数', O.offer_count != null ? nf(O.offer_count) : '--', '口', '', null),
       card('オファー総額', eth(O.offer_total, 3), 'WETH', jpyOf(O.offer_total), null),
     ].join('');
     // 参考レート（為替・下段）
     $('today-ref-cards').innerHTML = [
-      card('ETH価格', p.refEth.price, '', '', p.refEth.diff),
-      card('USD価格', p.refUsd.price, '', '', p.refUsd.diff),
+      card('ETH価格', H.eth_jpy[li] != null ? '¥' + nf(H.eth_jpy[li]) : '--', '', '', dd(H.eth_jpy, 0, true)),
+      card('USD価格', H.usd[li] != null ? '¥' + Number(H.usd[li]).toFixed(2) : '--', '', '', dd(H.usd, 2)),
     ].join('');
     // 対象日 = 取得日の前日（history の最新日付）。取得日時は latest_collected。
     const repDay = H.dates[li];
@@ -124,7 +137,7 @@
     $('today-title').textContent = `${jpDate(repDay)} のサマリ`;
     $('today-hint').textContent = coll.date ? `（取得: ${jpDate(coll.date)} ${coll.time || ''}）` : '';
     $('meta-date').textContent = jpDate(repDay);
-    $('meta-issue').textContent = p.issue ? `第${p.issue}号` : '';
+    $('meta-issue').textContent = (p && p.issue) ? `第${p.issue}号` : '';
   }
   const WD = ['日', '月', '火', '水', '木', '金', '土'];
   function jpDate(iso) {
