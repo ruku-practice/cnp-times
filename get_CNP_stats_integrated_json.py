@@ -627,22 +627,43 @@ class CNPStatsIntegrated:
             print(f"  ✗ sales 保存エラー: {str(e)}")
 
     def _os_name(self, address):
-        """OpenSea公式API(v2)でニックネーム(username)を取得（APIキーが無い/無ければ None）。
-        ※プロフィールページのタイトルは常にアドレスのため、名前はAPI経由でのみ取得可能。
+        """OpenSeaのプロフィール名(URLスラッグ=username)を取得。
+        アドレスページ https://opensea.io/<address> の埋め込みJSON
+        （profilesByAccount.account）から抽出する。APIキー/ブラウザ不要。
+        プロフィール名が未設定の場合 OpenSea は "0x6261c" のような短縮アドレスを
+        返すため、その形式は「名前なし」とみなし None を返す（→呼び出し側で
+        フルアドレス表示にフォールバック）。
         """
-        if not self.opensea_key:
-            return None
-        import urllib.request
-        import json as _json
+        import urllib.request, re
+        al = address.lower()
         try:
             req = urllib.request.Request(
-                f"https://api.opensea.io/api/v2/accounts/{address}",
-                headers={"X-API-KEY": self.opensea_key, "Accept": "application/json", "User-Agent": "Mozilla/5.0"})
-            r = _json.loads(urllib.request.urlopen(req, timeout=12).read())
-            u = (r.get("username") or "").strip()
-            return u or None
+                f"https://opensea.io/{address}",
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+                    "Accept": "text/html",
+                })
+            body = urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace")
         except Exception:
             return None
+        # 対象アドレスの account オブジェクトから username（無ければ displayName）
+        m = re.search(r'"account":\{"address":"' + re.escape(al) + r'"[^}]*?\}', body)
+        seg = m.group(0) if m else ""
+        mu = re.search(r'"username":"([^"]+)"', seg)
+        md = re.search(r'"displayName":"([^"]+)"', seg)
+        name = (mu.group(1) if mu else None) or (md.group(1) if md else None)
+        if not name:
+            m2 = re.search(re.escape(al) + r'"[^{}]*?"username":"([^"]+)"', body)
+            if m2:
+                name = m2.group(1)
+        if not name:
+            return None
+        name = name.strip()
+        # 名前未設定（短縮アドレス）ならニックネーム無し扱い
+        if re.fullmatch(r'0x[0-9a-fA-F]+', name):
+            return None
+        return name or None
 
     def _cnp_balance(self, address):
         """無料の公開RPCで受信ウォレットのCNP保有数（balanceOf）を取得。"""
@@ -682,18 +703,18 @@ class CNPStatsIntegrated:
                 for a in (s.get("to"), s.get("from")):
                     if a and a.lower() not in addrs:
                         addrs.append(a.lower())
-            # 名前: OpenSea APIキーがある場合のみ、未解決を name_cap まで
+            # 名前: 未解決のものを name_cap まで OpenSea から解決（キー不要・HTML抽出）
             n_done = 0
-            if self.opensea_key:
-                for a in addrs:
-                    if cache.get(a, {}).get("name_done"):
-                        continue
-                    if n_done >= name_cap:
-                        break
-                    nm = self._os_name(a)
-                    cache.setdefault(a, {})["name"] = nm
-                    cache[a]["name_done"] = True
-                    n_done += 1
+            for a in addrs:
+                if cache.get(a, {}).get("name_done"):
+                    continue
+                if n_done >= name_cap:
+                    break
+                nm = self._os_name(a)
+                cache.setdefault(a, {})["name"] = nm
+                cache[a]["name_done"] = True
+                n_done += 1
+                time.sleep(1.2)  # OpenSeaへの負荷軽減
             # CNP保有数: cnp_cap まで（変動するので毎回更新）
             c_done = 0
             for a in addrs:
