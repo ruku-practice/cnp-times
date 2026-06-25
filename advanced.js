@@ -136,7 +136,8 @@
     const coll = H.latest_collected || {};
     $('today-title').textContent = `${jpDate(repDay)} のサマリ`;
     $('today-hint').textContent = coll.date ? `（取得: ${jpDate(coll.date)} ${coll.time || ''}）` : '';
-    $('meta-date').textContent = jpDate(repDay);
+    // 第N号の横は「発行日」＝取得日に合わせる
+    $('meta-date').textContent = coll.date ? jpDate(coll.date) : '';
     $('meta-issue').textContent = (p && p.issue) ? `第${p.issue}号` : '';
   }
   const WD = ['日', '月', '火', '水', '木', '金', '土'];
@@ -145,6 +146,16 @@
     const [y, m, d] = iso.split('-').map(Number);
     const w = new Date(iso + 'T00:00:00').getDay();
     return `${m}月${d}日(${WD[w]})`;
+  }
+  function addDays(iso, n) {
+    const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+  // 取得日時（= 対象日の翌日 + 保存済み時刻）の表示。過去日でも可能な限り出す。
+  function collLabel(i) {
+    const ct = (HISTORY.collected_times || [])[i] || '';
+    const cd = addDays(HISTORY.dates[i], 1);
+    return `（取得: ${jpDate(cd)}${ct ? ' ' + ct : ''}）`;
   }
 
   // ---------- Chart ----------
@@ -290,7 +301,7 @@
         `<td>${rightLabel}</td><td class="mono">${rightVal}</td></tr>`;
     };
     const sec = (t) => `<tr class="seclabel"><td colspan="5">${t}</td></tr>`;
-    let h = `<table class="t"><caption>${jpDate(H.dates[i])}（${H.dates[i]}） の記録</caption>` +
+    let h = `<table class="t"><caption>${jpDate(H.dates[i])} の記録 ${collLabel(i)}</caption>` +
       `<thead><tr><th>項目</th><th>Price(ETH)</th><th>前日差</th><th>Price(JPY)</th><th>前日差</th></tr></thead><tbody>`;
     h += sec('本日データ');
     h += moneyRow('最安価格（フロア）', A.floor, 3);

@@ -1432,6 +1432,11 @@ def build_site_data(base_dir=None):
         _ll = history["labels"][-1] if history["labels"] else ""
         _mt = re.search(r'(\d{1,2}:\d{2})', _ll)
         history["latest_collected"] = {"date": history["dates"][-1], "time": _mt.group(1) if _mt else ""}
+        # 各日の取得時刻（シフト前ラベルから抽出）。取得日 = 対象日+1日 なので時刻だけ保持。
+        history["collected_times"] = [
+            (re.search(r'(\d{1,2}:\d{2})', lab).group(1) if re.search(r'(\d{1,2}:\d{2})', lab) else "")
+            for lab in history["labels"]
+        ]
 
         def _shift_back(iso):
             try:
