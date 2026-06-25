@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 import re
 import os
@@ -166,7 +166,8 @@ class CNPStatsIntegrated:
             # 24時間分遡るためにスクロールを行う
             max_scroll_attempts = 30
             last_item_count = 0
-            now = datetime.now()
+            JST = timezone(timedelta(hours=9))
+            now = datetime.now(JST).replace(tzinfo=None)
             cutoff_time = now - timedelta(hours=24)
 
             same_count_ticks = 0  # 同じ件数が連続した回数
@@ -496,8 +497,10 @@ class CNPStatsIntegrated:
             data_dir = os.path.join(self.base_dir, "data")
             os.makedirs(data_dir, exist_ok=True)
             payload = dict(offers)
-            payload['fetched_at'] = datetime.now().isoformat(timespec='seconds')
-            payload['date'] = datetime.now().strftime('%Y-%m-%d')
+            JST = timezone(timedelta(hours=9))
+            now_jst = datetime.now(JST)
+            payload['fetched_at'] = now_jst.isoformat(timespec='seconds')
+            payload['date'] = now_jst.strftime('%Y-%m-%d')
             path = os.path.join(data_dir, "offers.json")
             with open(path, 'w', encoding='utf-8') as f:
                 json.dump(payload, f, ensure_ascii=False, indent=2)
@@ -690,7 +693,8 @@ class CNPStatsIntegrated:
             ws_eth = self.workbook.worksheet('eth_stats')
             ws_floor = self.workbook.worksheet('floorprice')
             
-            now = datetime.now()
+            JST = timezone(timedelta(hours=9))
+            now = datetime.now(JST)
             date_str = now.strftime("%-m月%-d日")
             time_str = now.strftime("%H:%M")
             
@@ -1112,8 +1116,9 @@ def build_site_data(base_dir=None):
             out.append(val)
         return out
 
+    JST = timezone(timedelta(hours=9))
     history = {
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "generated_at": datetime.now(JST).isoformat(timespec="seconds"),
         "dates": iso_dates,
         "labels": [f"{g[0]}月{g[1]}日 {g[2]}".strip() for g in day_groups],
         "eth_jpy": [None] * len(day_groups),
@@ -1329,7 +1334,8 @@ def build_site_data(base_dir=None):
                 snap_iso = f"{int(m.group(1)):04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
                 break
         if not snap_iso:
-            snap_iso = datetime.now().strftime("%Y-%m-%d")
+            JST = timezone(timedelta(hours=9))
+            snap_iso = datetime.now(JST).strftime("%Y-%m-%d")
         snap_dir = os.path.join(base_dir, "snapshots")
         os.makedirs(snap_dir, exist_ok=True)
         snap_path = os.path.join(snap_dir, f"{snap_iso}.json")
