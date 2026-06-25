@@ -8,6 +8,10 @@ eth_stats_full.json
 credentials*.json
 service_account*.json
 
+# ローカル実行ログ（Model B / トリガー）
+local_update.log
+trigger.log
+
 # OS / Python
 .DS_Store
 __pycache__/
