@@ -3,12 +3,12 @@ name: Daily CNP data update
 on:
   schedule:
     # フォールバック専用: 00:00 JST = 15:00 UTC。
-    # GitHubのスケジュールcronはベストエフォートで、混雑時は数十分〜数時間遅延する。
-    # 確実な 0:00 実行はローカル cron からの `gh workflow run`(workflow_dispatch) で行い、
-    # この schedule は「ローカルが動かなかった日」の保険として残す。
-    # ガード(check)で本日分が既に更新済みならスキップするため二重更新は起きない。
+    # 通常の 0:00 実行は Google Cloud（Cloud Scheduler 0:00 JST → Cloud Run Job "cnp-daily"）で行う。
+    # GitHubのスケジュールcronはベストエフォートで混雑時は数十分〜数時間遅延するため、
+    # この schedule は「Cloud Run が失敗/未実行だった日」の保険として残す。
+    # ガード(check)で本日分が既に更新済みならスキップするので二重更新は起きない。
     - cron: "0 15 * * *"
-  workflow_dispatch: {}   # ローカル cron からのトリガー & 手動実行
+  workflow_dispatch: {}   # 手動実行
 
 permissions:
   contents: write          # 生成したJSONをリポジトリへ push するため
