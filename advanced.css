@@ -178,3 +178,9 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
 .footer .notes li { margin: 4px 0; line-height: 1.6; }
 .footer .notes b { color: var(--text); }
 .footer a { color: var(--accent); }
+
+/* クリプトニンジャ・ニュース埋め込み */
+.news-head { font-weight: 700; margin: 2px 0 10px; }
+.news-embeds { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.news-embeds .twitter-tweet { margin: 0 !important; }
+#news-panel:empty { display: none; }

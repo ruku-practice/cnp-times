@@ -225,6 +225,16 @@
       type: m.type, data: { labels: dates, datasets },
       options: {
         responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        onClick: (evt, _els, ch) => {
+          const pts = ch.getElementsAtEventForMode(evt, 'index', { intersect: false }, true);
+          if (!pts.length) return;
+          const date = ch.data.labels[pts[0].index];
+          if (date && idxByDate(date) >= 0) {
+            showDate(date);
+            const el = document.getElementById('travel-panel');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        },
         plugins: {
           legend: { display: datasets.length > 1, labels: { color: tick, boxWidth: 12, font: { size: 11 } } },
           tooltip: { backgroundColor: cssVar('--surface'), titleColor: cssVar('--text'), bodyColor: cssVar('--text'), borderColor: grid, borderWidth: 1 }
@@ -411,7 +421,35 @@
     if (i < 0) return;
     $('date-picker').value = HISTORY.dates[i];
     renderDayTable(i);
+    renderNews(HISTORY.dates[i]);
     renderSales(HISTORY.dates[i]);
+  }
+
+  // クリプトニンジャ・ニュース（X投稿）の埋め込み
+  let twttrLoading = false;
+  function loadTwitterWidgets(cb) {
+    if (window.twttr && window.twttr.widgets) { cb && cb(); return; }
+    const done = () => { const t = setInterval(() => { if (window.twttr && window.twttr.widgets) { clearInterval(t); cb && cb(); } }, 100); };
+    if (twttrLoading) { done(); return; }
+    twttrLoading = true;
+    const s = document.createElement('script');
+    s.src = 'https://platform.twitter.com/widgets.js';
+    s.async = true; s.charset = 'utf-8';
+    s.onload = () => cb && cb();
+    document.head.appendChild(s);
+  }
+  function renderNews(iso) {
+    const panel = $('news-panel');
+    if (!panel) return;
+    const n = (NEWS || {})[iso];
+    if (!n || (!n.danku && !n.shack)) { panel.innerHTML = ''; return; }
+    let h = `<div class="news-head">📰 ${iso} のクリプトニンジャ・ニュース <span class="cap-sub">（前日まとめ・X投稿）</span></div><div class="news-embeds">`;
+    ['shack', 'danku'].forEach(g => {
+      if (n[g] && n[g].url) h += `<blockquote class="twitter-tweet" data-lang="ja" data-dnt="true" data-conversation="none"><a href="${n[g].url}"></a></blockquote>`;
+    });
+    h += '</div>';
+    panel.innerHTML = h;
+    loadTwitterWidgets(() => { try { window.twttr.widgets.load(panel); } catch (e) {} });
   }
   function setupDateControls() {
     const ds = HISTORY.dates, picker = $('date-picker');
@@ -429,15 +467,16 @@
   }
 
   // ---------- boot ----------
-  let HISTORY = null, OFFERS = null, WALLETS = {};
+  let HISTORY = null, OFFERS = null, WALLETS = {}, NEWS = {};
   Promise.all([
     fetchJSON('html2_data.json'),
     fetchJSON('data/history.json'),
     fetchJSON('data/offers.json').catch(() => null),
-    fetchJSON('data/wallets.json').catch(() => ({}))
+    fetchJSON('data/wallets.json').catch(() => ({})),
+    fetchJSON('news.json').catch(() => ({}))
   ])
-    .then(([html2, history, offers, wallets]) => {
-      HISTORY = history; OFFERS = offers; WALLETS = wallets || {};
+    .then(([html2, history, offers, wallets, news]) => {
+      HISTORY = history; OFFERS = offers; WALLETS = wallets || {}; NEWS = news || {};
       HISTORY.dates.forEach((d, i) => DATE_IDX[d] = i);
       $('loader').classList.add('hidden');
       $('main').classList.remove('hidden');
