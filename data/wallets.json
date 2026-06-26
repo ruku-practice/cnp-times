@@ -355,7 +355,9 @@
   "name_done": true
  },
  "0xe15062b178e1fba0e72406b9bd9a65bb1644f212": {
-  "cnp": 72
+  "cnp": 72,
+  "name": null,
+  "name_done": true
  },
  "0x8b08ba2c45e79099116b929c7b25e00eda74735f": {
   "cnp": 10,
