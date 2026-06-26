@@ -397,3 +397,12 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.12); transition: background .15s ease;
 }
 .adv-link:hover { background: #3a6fd0; }
+
+.adv-link.financie {
+  background: #e2efda;
+  color: #000;
+  border: 1px solid #999999;
+  box-shadow: none;
+}
+
+.adv-link.financie:hover { background: #c8dfbe; }
