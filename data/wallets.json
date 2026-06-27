@@ -10,7 +10,7 @@
   "name_done": true
  },
  "0x0b4372e936f4c9d86217488ba39b043e77882c25": {
-  "cnp": 97,
+  "cnp": 98,
   "name": "running-mole",
   "name_done": true
  },
@@ -668,5 +668,10 @@
   "cnp": 1,
   "name": null,
   "name_done": true
+ },
+ "0x1bfa78728350e396991326e147aca490b1c62a75": {
+  "name": "kensaku",
+  "name_done": true,
+  "cnp": 1
  }
 }

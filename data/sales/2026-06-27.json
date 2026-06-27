@@ -1,0 +1,16 @@
+[
+ {
+  "date": "2026-06-27",
+  "time": "15:57",
+  "token": "24694",
+  "image": "https://data.cryptoninjapartners.com/images/24694.png",
+  "character": "Yama",
+  "price_eth": 0.17,
+  "price_jpy": 43430,
+  "from": "0x1bFa78728350e396991326e147ACA490B1C62A75",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0x760f210ee2bfe3ccc96200bed1e09bcc9e461aac4bc0ba3dc71b5ab61150ad74",
+  "from_cnp": 1,
+  "to_cnp": 98
+ }
+]
