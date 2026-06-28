@@ -50,7 +50,9 @@ jobs:
         env:
           X_COOKIES_JSON: ${{ secrets.X_COOKIES_JSON }}
           PYTHONUNBUFFERED: "1"
-        run: python fetch_news.py
+        run: |
+          python fetch_news.py
+          python -c "import json, pathlib, sys; p=pathlib.Path('news.json'); news=json.load(p.open(encoding='utf-8')) if p.exists() else {}; sys.exit(0 if news.get('${{ steps.check.outputs.yday }}') else 1)"
 
       - name: Commit & push news
         if: steps.check.outputs.run == 'true'
