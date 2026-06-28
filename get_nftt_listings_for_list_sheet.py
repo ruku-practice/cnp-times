@@ -456,7 +456,31 @@ class CNPListingsFetcher:
         except Exception as e:
             print(f"書き込みエラー: {e}")
 
+    def is_already_updated_today(self):
+        """スプレッドシートの最終列の1行目を確認し、本日すでにデータが書き込み済みかを判定"""
+        try:
+            wb = self.gc.open_by_key(self.target_spreadsheet_id)
+            ws = wb.worksheet(self.target_sheet_name)
+            last_col = ws.col_count
+            if last_col > 0:
+                # 最終列の1行目の値を取得 (例: "6月29日")
+                last_date_val = ws.cell(1, last_col).value
+                if last_date_val:
+                    today_str = datetime.now().strftime("%-m月%-d日")
+                    if last_date_val.strip() == today_str:
+                        return True
+            return False
+        except Exception as e:
+            print(f"本日更新済みチェックエラー: {e}")
+            return False
+
     def run(self):
+        print("本日更新済みチェックを実行中...")
+        if self.is_already_updated_today():
+            print("【ガード】本日分のデータは既にスプレッドシートに書き込み済みです。処理をスキップして終了します。")
+            import sys
+            sys.exit(0)
+
         self.setup_browser()
         
         # 1. ETH Price

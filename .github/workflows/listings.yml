@@ -4,8 +4,8 @@ on:
   repository_dispatch:
     types: [run-listings-update]
   schedule:
-    # 朝 5:00 JST = 20:00 UTC
-    - cron: "0 20 * * *"
+    # 朝 5:10 JST = 20:10 UTC
+    - cron: "10 20 * * *"
   workflow_dispatch:
 
 permissions:
