@@ -1,0 +1,52 @@
+name: Daily CNP Listing update
+
+on:
+  repository_dispatch:
+    types: [run-listings-update]
+  schedule:
+    # フォールバック専用: 朝 6:00 JST = 21:00 UTC
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cnp-listings-update
+  cancel-in-progress: false
+
+jobs:
+  listings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Write service account credentials
+        env:
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+        run: |
+          printf '%s' "$GOOGLE_CREDENTIALS_JSON" > service_account.json
+          echo "wrote service_account.json"
+
+      - name: Run NFTT Listing Fetcher
+        env:
+          GOOGLE_CREDENTIALS_PATH: ${{ github.workspace }}/service_account.json
+        run: python get_nftt_listings_for_list_sheet.py
+
+      - name: Clean credentials
+        run: rm -f service_account.json
