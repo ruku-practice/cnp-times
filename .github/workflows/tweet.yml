@@ -1,0 +1,58 @@
+name: Daily CNP tweet update
+
+on:
+  repository_dispatch:
+    types: [run-daily-tweet]
+  schedule:
+    # フォールバック専用: 朝 6:00 JST = 21:00 UTC
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-tweet
+  cancel-in-progress: false
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Write service account credentials
+        env:
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+        run: |
+          printf '%s' "$GOOGLE_CREDENTIALS_JSON" > service_account.json
+          echo "wrote service_account.json"
+
+      - name: Take Google Sheets Screenshots
+        env:
+          GOOGLE_CREDENTIALS_PATH: ${{ github.workspace }}/service_account.json
+        run: python take_screenshot.py
+
+      - name: Tweet CNP Report
+        env:
+          GOOGLE_CREDENTIALS_PATH: ${{ github.workspace }}/service_account.json
+          X_COOKIES_JSON: ${{ secrets.X_COOKIES_JSON }}
+        run: python py2tweet_free.py --sheet 01_CNPTIMES
+
+      - name: Clean credentials
+        run: rm -f service_account.json

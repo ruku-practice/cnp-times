@@ -87,20 +87,6 @@ jobs:
           done
           echo "❌ 3回とも失敗しました"
           exit 1
-
-      - name: Take Google Sheets Screenshots
-        if: steps.check.outputs.run == 'true'
-        env:
-          GOOGLE_CREDENTIALS_PATH: ${{ github.workspace }}/service_account.json
-        run: python take_screenshot.py
-
-      - name: Tweet CNP Report
-        if: steps.check.outputs.run == 'true'
-        env:
-          GOOGLE_CREDENTIALS_PATH: ${{ github.workspace }}/service_account.json
-          X_COOKIES_JSON: ${{ secrets.X_COOKIES_JSON }}
-        run: python py2tweet_free.py --sheet 01_CNPTIMES
-
       - name: Commit & push updated data
         if: steps.check.outputs.run == 'true'
         run: |
