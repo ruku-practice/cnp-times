@@ -21,10 +21,14 @@ SHACK_PH = ["昨日のクリプトニンジャ", "昨日のCryptoNinjaまとめ"
             "昨日のNinjaDAOまとめ", "昨日のCryptoNinja振り返り"]
 
 # (group, account, query) ※recentはカタカナ表記
+# query=None のアカウントは検索せずユーザーTLを直接取得する。
+# 検索に乗らない（from:検索が0件になる）アカウント用。同一日に同groupで複数ヒット
+# した場合は先勝ち（既存保護）なので、優先したい本命を上に並べる。
 ACCOUNTS = [
     ("danku", "DANKU_mj",        "from:DANKU_mj クリプトニンジャ"),
+    # 旧 sharkrider000。ID変更で sekishusai_mech（石舟斎-RX）に。from:検索が0件のためTL直取得・本命
+    ("shack", "sekishusai_mech", None),
     ("shack", "SHACK_SAME_SAME", "from:SHACK_SAME_SAME クリプトニンジャ"),
-    ("shack", "sharkrider000",   "from:sharkrider000 クリプトニンジャ"),
 ]
 
 
@@ -52,9 +56,13 @@ async def main():
     added = 0
     for group, acct, q in ACCOUNTS:
         try:
-            res = await client.search_tweet(q, "Latest")
+            if q is None:                               # 検索非対応アカウントはTL直取得
+                user = await client.get_user_by_screen_name(acct)
+                res = await user.get_tweets("Tweets", count=15)
+            else:
+                res = await client.search_tweet(q, "Latest")
         except Exception as e:
-            print(f"  {acct} 検索失敗: {e}", flush=True)
+            print(f"  {acct} 取得失敗: {e}", flush=True)
             continue
         for t in list(res or [])[:15]:
             if not keep(group, t.text or ""):
