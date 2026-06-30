@@ -49,6 +49,11 @@ def target_date(created_at):
     return (dt.date() - timedelta(days=1)).isoformat()
 
 
+# 各アカウントから遡って見る投稿数。Mac留守で数日取れなかった日もまとめてbackfillするため
+# 広めに取る（要約投稿は1日1件なので最大~この日数ぶん遡れる。keep()で要約以外は除外）。
+FETCH_LIMIT = 40
+
+
 async def main():
     client = Client(language="ja-JP")
     client.set_cookies(load_cookies())
@@ -58,13 +63,13 @@ async def main():
         try:
             if q is None:                               # 検索非対応アカウントはTL直取得
                 user = await client.get_user_by_screen_name(acct)
-                res = await user.get_tweets("Tweets", count=15)
+                res = await user.get_tweets("Tweets", count=FETCH_LIMIT)
             else:
                 res = await client.search_tweet(q, "Latest")
         except Exception as e:
             print(f"  {acct} 取得失敗: {e}", flush=True)
             continue
-        for t in list(res or [])[:15]:
+        for t in list(res or [])[:FETCH_LIMIT]:
             if not keep(group, t.text or ""):
                 continue
             td = target_date(t.created_at)
