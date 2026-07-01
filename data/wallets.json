@@ -673,5 +673,20 @@
   "name": "kensaku",
   "name_done": true,
   "cnp": 1
+ },
+ "0xefbb2d23d2819fdf9ba55dd3b4ab178fe05920f3": {
+  "name": "shimamari7",
+  "name_done": true,
+  "cnp": 5
+ },
+ "0xda89cc30d12b429397166a15ea7ddb311beccdf9": {
+  "name": "oaksyn",
+  "name_done": true,
+  "cnp": 1
+ },
+ "0x343469bd867aa84002e73923e6ece43574abb151": {
+  "name": null,
+  "name_done": true,
+  "cnp": 10
  }
 }
