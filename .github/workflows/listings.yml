@@ -3,9 +3,6 @@ name: Daily CNP Listing update
 on:
   repository_dispatch:
     types: [run-listings-update]
-  schedule:
-    # 朝 5:10 JST = 20:10 UTC
-    - cron: "10 20 * * *"
   workflow_dispatch:
 
 permissions:

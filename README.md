@@ -22,7 +22,41 @@ get_CNP_stats_integrated_json.py
 
 ## 自動更新
 
-`.github/workflows/daily.yml` が毎日 0:00(JST) に実行され、スクレイプ → スプレッドシート更新 → JSON生成 → 自動コミットして GitHub Pages に反映する。
+- `.github/workflows/daily.yml` は日次本体の更新用。
+- listings 更新は Cloud Run Job へ移行する前提で、`.github/workflows/listings.yml` は手動実行専用。
+
+### listings を Cloud Run で動かす
+
+`deploy/listings/` は `get_nftt_listings_for_list_sheet.py` を Cloud Run Job から起動するための最小構成。
+
+想定フロー:
+
+1. `deploy/listings/Dockerfile` で Job イメージを build
+2. `deploy/listings/run.sh` が起動時に `main` を clone
+3. `GOOGLE_CREDENTIALS_JSON` を `/tmp/sa.json` に展開
+4. `python3 get_nftt_listings_for_list_sheet.py` を実行
+5. 重複ガードは script 側で判定
+
+例:
+
+```bash
+gcloud builds submit --tag REGION-docker.pkg.dev/PROJECT/REPO/cnp-listings-job:latest deploy/listings
+
+gcloud run jobs create cnp-listings-update \
+  --image REGION-docker.pkg.dev/PROJECT/REPO/cnp-listings-job:latest \
+  --region REGION \
+  --max-retries 0 \
+  --task-timeout 1800s \
+  --set-secrets GH_TOKEN=GH_TOKEN:latest,GOOGLE_CREDENTIALS_JSON=GOOGLE_CREDENTIALS_JSON:latest
+
+gcloud scheduler jobs create http cnp-listings-update-0510 \
+  --location REGION \
+  --schedule "10 5 * * *" \
+  --time-zone "Asia/Tokyo" \
+  --uri "https://REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/PROJECT/jobs/cnp-listings-update:run" \
+  --http-method POST \
+  --oauth-service-account-email SCHEDULER_INVOKER_SA@PROJECT.iam.gserviceaccount.com
+```
 
 ## ローカル実行
 
