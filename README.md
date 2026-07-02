@@ -51,7 +51,7 @@ gcloud run jobs create cnp-listings-update \
 
 gcloud scheduler jobs create http cnp-listings-update-0510 \
   --location REGION \
-  --schedule "10 5 * * *" \
+  --schedule "0 5 * * *" \
   --time-zone "Asia/Tokyo" \
   --uri "https://REGION-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/PROJECT/jobs/cnp-listings-update:run" \
   --http-method POST \
