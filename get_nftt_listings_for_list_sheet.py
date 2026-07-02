@@ -6,12 +6,15 @@ from datetime import datetime, timedelta
 import time
 import os
 import re
+from zoneinfo import ZoneInfo
 import yfinance as yf
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
 import gspread
 from gspread.exceptions import APIError
 from google.auth.exceptions import TransportError
+
+JST = ZoneInfo("Asia/Tokyo")
 
 class CNPListingsFetcher:
     """
@@ -59,6 +62,13 @@ class CNPListingsFetcher:
             scopes=self.scopes
         )
         self.gc = gspread.authorize(self.credentials)
+
+    def now_jst(self):
+        return datetime.now(JST)
+
+    def get_last_used_col(self, ws):
+        row1 = ws.row_values(1)
+        return len(row1)
 
     def setup_browser(self):
         """Playwright Browser Setup"""
@@ -195,7 +205,7 @@ class CNPListingsFetcher:
             
             sales_24h = 0
             vol_24h = 0.0
-            cutoff_time = datetime.now() - timedelta(hours=24)
+            cutoff_time = self.now_jst().replace(tzinfo=None) - timedelta(hours=24)
             
             # Scroll to load history
             for i in range(20):
@@ -309,7 +319,7 @@ class CNPListingsFetcher:
             ws = wb.worksheet(self.target_sheet_name)
             
             print("スプレッドシート書き込み開始...")
-            now = datetime.now()
+            now = self.now_jst()
             col_data = [] # 1D list, will convert to column
             
             # 1-2. Date/Time
@@ -393,7 +403,7 @@ class CNPListingsFetcher:
             diff_val = ""
             if avg_sale is not None:
                 try:
-                    last_col = ws.col_count
+                    last_col = self.get_last_used_col(ws)
                     if last_col > 0:
                         prev_val = ws.cell(30, last_col).value
                         if prev_val:
@@ -447,8 +457,10 @@ class CNPListingsFetcher:
                  col_data.append(["アクセス不可"])
             
             # Write
-            next_col = ws.col_count + 1
-            ws.add_cols(1)
+            last_col = self.get_last_used_col(ws)
+            next_col = last_col + 1
+            if next_col > ws.col_count:
+                ws.add_cols(next_col - ws.col_count)
             cell_range = f'R1C{next_col}:R{len(col_data)}C{next_col}'
             ws.update(values=col_data, range_name=cell_range, value_input_option='USER_ENTERED')
             print(f"書き込み完了: 列 {next_col}, 行数 {len(col_data)}")
@@ -461,12 +473,12 @@ class CNPListingsFetcher:
         try:
             wb = self.gc.open_by_key(self.target_spreadsheet_id)
             ws = wb.worksheet(self.target_sheet_name)
-            last_col = ws.col_count
+            last_col = self.get_last_used_col(ws)
             if last_col > 0:
                 # 最終列の1行目の値を取得 (例: "6月29日")
                 last_date_val = ws.cell(1, last_col).value
                 if last_date_val:
-                    today_str = datetime.now().strftime("%-m月%-d日")
+                    today_str = self.now_jst().strftime("%-m月%-d日")
                     if last_date_val.strip() == today_str:
                         return True
             return False
