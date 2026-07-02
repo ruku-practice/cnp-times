@@ -31,6 +31,8 @@
       <a class="btn ghost" href="https://ruku-practice.github.io/financie-times-web/">FiNANCiE TIMES ↗</a>
       <a class="btn ghost" href="index.html">📰 クラシック版</a>
       <button class="btn ghost" id="theme-btn" title="テーマ切替">🌙</button>
+      <!-- CNP Owner限定コンテンツ（Discord認証）: ログイン状態表示 -->
+      <div class="cnp-auth-header hidden" data-cnp-auth-header></div>
     </div>
 
     <!-- Loader -->
@@ -104,6 +106,13 @@
         <div class="note" id="date-note"></div>
         <div class="panel" id="travel-panel"></div>
         <div class="panel" id="sales-panel" style="margin-top:16px;"></div>
+
+        <!-- CNP Owner限定: 日次分析コメント（ニュースセクションより上に表示） -->
+        <div class="cnp-exclusive-section hidden" data-cnp-exclusive-section>
+          <h2>🔒 CNP Owner限定 日次分析コメント</h2>
+          <div class="panel cnp-exclusive-body" data-cnp-body></div>
+        </div>
+
         <div class="panel" id="news-panel" style="margin-top:16px;"></div>
       </div>
 
@@ -131,6 +140,7 @@
     </div>
   </div>
 
+  <script src="member.js"></script>
   <script src="advanced.js?v=1.15"></script>
 </body>
 </html>

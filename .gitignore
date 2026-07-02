@@ -18,3 +18,9 @@ __pycache__/
 *.pyc
 debug_*.html
 debug_*.json
+
+# Discord認証CMS: ローカルストレージフォールバック（GCS未設定時の記事・画像置き場）
+deploy/auth/content/
+
+# Discord認証CMS: 限定コンテンツの原稿（公開リポジトリに入れない）
+deploy/auth/scripts/past_entries/
