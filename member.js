@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    return { viewerEl, editorEl };
+    return { viewerEl, editorEl, editorToggleBtn };
   }
 
   function renderViewer(viewerEl, token, entries) {
@@ -391,12 +391,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- editor用フォームの描画 ---------------------------------------------------
 
+  function yesterdayJst() {
+    // 掲載日=投稿日の前日ルールに合わせ、JSTの「昨日」を YYYY-MM-DD で返す
+    const now = new Date();
+    const jst = new Date(now.getTime() + (9 * 60 - now.getTimezoneOffset()) * 60000 - 24 * 60 * 60 * 1000);
+    return jst.toISOString().slice(0, 10);
+  }
+
   function renderEditorForm(editorEl, token, state) {
     editorEl.innerHTML = `
       <div class="cnp-editor-form">
         <div class="cnp-editor-row">
           <label for="cnp-editor-date">日付</label>
           <input type="date" id="cnp-editor-date" data-cnp-field="date">
+          <p class="cnp-editor-hint">日付を変えると、その日付の記事の編集（記事があれば読み込み）／新規作成になります。</p>
         </div>
         <div class="cnp-editor-row">
           <label for="cnp-editor-title">タイトル</label>
@@ -432,7 +440,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = editorEl.querySelector('[data-cnp-save]');
     const deleteBtn = editorEl.querySelector('[data-cnp-delete]');
 
-    dateInput.value = todayJst();
+    // 初期日付: 表示中の記事があればその日付（＝その記事の編集から始まる）、
+    // 無ければ昨日（掲載日=投稿日の前日ルール）
+    dateInput.value = state.initialDate || yesterdayJst();
 
     async function loadForDate(date) {
       statusEl.textContent = '';
@@ -584,10 +594,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (me.editor) {
-      renderEditorForm(editorEl, token, {
+      const editorApi = renderEditorForm(editorEl, token, {
+        initialDate: entries && entries.length > 0 ? entries[0].date : null,
         onSaved: reloadViewer,
         onDeleted: reloadViewer
       });
+
+      // フォームを開いたとき、閲覧側で選択中の記事を読み込む（「表示中の記事を編集する」体験にする）
+      if (shell.editorToggleBtn) {
+        shell.editorToggleBtn.addEventListener('click', () => {
+          if (editorEl.classList.contains('hidden')) return; // 閉じた時は何もしない
+          const select = viewerEl.querySelector('[data-cnp-date-select]');
+          const current = select ? select.value : null;
+          if (current && current !== editorApi.dateInput.value) {
+            editorApi.dateInput.value = current;
+            editorApi.loadForDate(current);
+          }
+        });
+      }
     }
   }
 
