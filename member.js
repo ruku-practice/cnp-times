@@ -495,18 +495,15 @@ document.addEventListener('DOMContentLoaded', () => {
       previewEl.classList.remove('hidden');
     });
 
-    imageInput.addEventListener('change', async () => {
-      const file = imageInput.files && imageInput.files[0];
-      if (!file) return;
+    // 画像をアップロードしてカーソル位置にMarkdownを挿入する（ファイル選択・ペースト共通）
+    async function uploadAndInsert(file) {
       const ext = (file.name.split('.').pop() || '').toLowerCase();
       if (!['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
         statusEl.textContent = STATUS_MESSAGES.file_type_error;
-        imageInput.value = '';
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
         statusEl.textContent = STATUS_MESSAGES.file_size_error;
-        imageInput.value = '';
         return;
       }
       statusEl.textContent = 'アップロード中...';
@@ -524,8 +521,32 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         console.error('[member.js] 画像アップロードに失敗しました:', err);
         statusEl.textContent = STATUS_MESSAGES.upload_error;
-      } finally {
-        imageInput.value = '';
+      }
+    }
+
+    imageInput.addEventListener('change', async () => {
+      const file = imageInput.files && imageInput.files[0];
+      if (!file) return;
+      await uploadAndInsert(file);
+      imageInput.value = '';
+    });
+
+    // クリップボードの画像を本文欄に直接ペースト（スクショ等をCmd/Ctrl+Vで挿入）
+    const PASTE_MIME_EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp' };
+    bodyTextarea.addEventListener('paste', (e) => {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (const item of items) {
+        const ext = PASTE_MIME_EXT[item.type];
+        if (item.kind === 'file' && ext) {
+          e.preventDefault(); // 画像バイナリの文字列表現が貼られるのを防ぐ
+          const blob = item.getAsFile();
+          if (blob) {
+            // ペースト画像はファイル名が無い/不定のため、MIMEから拡張子を確定させて渡す
+            uploadAndInsert(new File([blob], `paste.${ext}`, { type: item.type }));
+          }
+          return;
+        }
       }
     });
 
