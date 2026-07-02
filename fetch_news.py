@@ -26,6 +26,8 @@ SHACK_PH = ["昨日のクリプトニンジャ", "昨日のCryptoNinjaまとめ"
 # した場合は先勝ち（既存保護）なので、優先したい本命を上に並べる。
 ACCOUNTS = [
     ("danku", "DANKU_mj",        "from:DANKU_mj クリプトニンジャ"),
+    # 検索はX側の一時不調で404になることがある（2026-07-02〜03に発生）。TL直取得のフォールバック
+    ("danku", "DANKU_mj",        None),
     # 旧 sharkrider000。ID変更で sekishusai_mech（石舟斎-RX）に。from:検索が0件のためTL直取得・本命
     ("shack", "sekishusai_mech", None),
     ("shack", "SHACK_SAME_SAME", "from:SHACK_SAME_SAME クリプトニンジャ"),
