@@ -256,6 +256,7 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
 .cnp-editor-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
 .cnp-editor-row label { font-size: 13px; font-weight: 700; color: var(--text-dim); }
 .cnp-editor-hint { font-size: 11.5px; color: var(--text-dim); margin: 4px 0 0; }
+.cnp-editor-header-actions { display: flex; align-items: center; gap: 8px; }
 .cnp-editor-row input[type="date"],
 .cnp-editor-row input[type="text"],
 .cnp-editor-row textarea {

@@ -308,7 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!body) return null;
 
     const editorToggle = ctx.editor
-      ? `<button type="button" class="btn cnp-editor-toggle-btn" data-cnp-editor-toggle>✏️ 記事を書く・編集</button>`
+      ? `<span class="cnp-editor-header-actions">
+           <button type="button" class="cnp-save-btn hidden" data-cnp-header-save>保存</button>
+           <button type="button" class="btn cnp-editor-toggle-btn" data-cnp-editor-toggle>✏️ 記事を書く・編集</button>
+         </span>`
       : '';
 
     body.innerHTML = `
@@ -321,21 +324,28 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     const editorToggleBtn = body.querySelector('[data-cnp-editor-toggle]');
+    const headerSaveBtn = body.querySelector('[data-cnp-header-save]');
     const editorEl = body.querySelector('[data-cnp-editor]');
     const viewerEl = body.querySelector('[data-cnp-viewer]');
+    // onOpen / onBeforeClose は renderEntries 側で差し込む（開いた時の記事読込・未保存確認）
+    const shellApi = { viewerEl, editorEl, editorToggleBtn, headerSaveBtn, onOpen: null, onBeforeClose: null };
     if (editorToggleBtn) {
       // フォームは記事本文より上（ボタン直下）に開く。長い記事の下に開くと
       // 画面上何も起きていないように見えるため（Brave等での実測不具合）。
       editorToggleBtn.addEventListener('click', () => {
+        const isOpen = !editorEl.classList.contains('hidden');
+        if (isOpen && shellApi.onBeforeClose && !shellApi.onBeforeClose()) return; // 未保存確認でキャンセル
         const opened = editorEl.classList.toggle('hidden') === false;
         editorToggleBtn.textContent = opened ? '✖ 編集を閉じる' : '✏️ 記事を書く・編集';
+        if (headerSaveBtn) headerSaveBtn.classList.toggle('hidden', !opened);
         if (opened) {
+          if (shellApi.onOpen) shellApi.onOpen();
           editorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       });
     }
 
-    return { viewerEl, editorEl, editorToggleBtn };
+    return shellApi;
   }
 
   function renderViewer(viewerEl, token, entries) {
@@ -420,6 +430,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="file" accept=".png,.jpg,.jpeg,.gif,.webp" data-cnp-image-input hidden>
           </label>
           <button type="button" class="cnp-preview-toggle-btn" data-cnp-preview-toggle>👁️ プレビュー</button>
+          <button type="button" class="cnp-save-btn" data-cnp-save>保存</button>
+          <button type="button" class="cnp-delete-btn" data-cnp-delete>削除</button>
         </div>
         <div class="cnp-editor-preview hidden" data-cnp-preview></div>
         <p class="cnp-editor-status" data-cnp-editor-status></p>
@@ -437,8 +449,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewToggleBtn = editorEl.querySelector('[data-cnp-preview-toggle]');
     const previewEl = editorEl.querySelector('[data-cnp-preview]');
     const statusEl = editorEl.querySelector('[data-cnp-editor-status]');
-    const saveBtn = editorEl.querySelector('[data-cnp-save]');
-    const deleteBtn = editorEl.querySelector('[data-cnp-delete]');
+    const saveBtns = Array.from(editorEl.querySelectorAll('[data-cnp-save]'));
+    const deleteBtns = Array.from(editorEl.querySelectorAll('[data-cnp-delete]'));
+
+    // 未保存の変更トラッキング（閉じる時の確認に使う）
+    let dirty = false;
+    const markDirty = () => { dirty = true; };
+    titleInput.addEventListener('input', markDirty);
+    bodyTextarea.addEventListener('input', markDirty);
 
     // 初期日付: 表示中の記事があればその日付（＝その記事の編集から始まる）、
     // 無ければ昨日（掲載日=投稿日の前日ルール）
@@ -455,6 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
           titleInput.value = '';
           bodyTextarea.value = '';
         }
+        dirty = false; // 読み込み直後は未編集状態
       } catch (err) {
         console.error('[member.js] 編集用記事の取得に失敗しました:', err);
         statusEl.textContent = STATUS_MESSAGES.fetch_error;
@@ -500,6 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bodyTextarea.focus();
         const cursor = start + insertion.length;
         bodyTextarea.setSelectionRange(cursor, cursor);
+        dirty = true; // プログラム挿入はinputイベントが飛ばないため明示
         statusEl.textContent = '画像を挿入しました。';
       } catch (err) {
         console.error('[member.js] 画像アップロードに失敗しました:', err);
@@ -509,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    saveBtn.addEventListener('click', async () => {
+    async function doSave() {
       const date = dateInput.value;
       const title = titleInput.value.trim();
       const bodyMd = bodyTextarea.value;
@@ -518,27 +538,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       statusEl.textContent = '保存中...';
-      saveBtn.disabled = true;
+      saveBtns.forEach((b) => { b.disabled = true; });
       try {
         await putEntry(token, date, title, bodyMd);
+        dirty = false;
         statusEl.textContent = '保存しました。';
         if (state.onSaved) await state.onSaved(date);
       } catch (err) {
         console.error('[member.js] 保存に失敗しました:', err);
         statusEl.textContent = STATUS_MESSAGES.save_error;
       } finally {
-        saveBtn.disabled = false;
+        saveBtns.forEach((b) => { b.disabled = false; });
       }
-    });
+    }
 
-    deleteBtn.addEventListener('click', async () => {
+    async function doDelete() {
       const date = dateInput.value;
       if (!date) return;
       if (!window.confirm(`${date} の記事を削除します。よろしいですか？`)) return;
       statusEl.textContent = '削除中...';
-      deleteBtn.disabled = true;
+      deleteBtns.forEach((b) => { b.disabled = true; });
       try {
         await deleteEntry(token, date);
+        dirty = false;
         statusEl.textContent = '削除しました。';
         titleInput.value = '';
         bodyTextarea.value = '';
@@ -547,11 +569,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('[member.js] 削除に失敗しました:', err);
         statusEl.textContent = STATUS_MESSAGES.delete_error;
       } finally {
-        deleteBtn.disabled = false;
+        deleteBtns.forEach((b) => { b.disabled = false; });
       }
-    });
+    }
 
-    return { dateInput, loadForDate };
+    saveBtns.forEach((b) => b.addEventListener('click', doSave));
+    deleteBtns.forEach((b) => b.addEventListener('click', doDelete));
+
+    return { dateInput, loadForDate, save: doSave, isDirty: () => dirty };
   }
 
   // --- 記事ビュー全体（閲覧+editor）を組み立てる -------------------------------
@@ -601,16 +626,20 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // フォームを開いたとき、閲覧側で選択中の記事を読み込む（「表示中の記事を編集する」体験にする）
-      if (shell.editorToggleBtn) {
-        shell.editorToggleBtn.addEventListener('click', () => {
-          if (editorEl.classList.contains('hidden')) return; // 閉じた時は何もしない
-          const select = viewerEl.querySelector('[data-cnp-date-select]');
-          const current = select ? select.value : null;
-          if (current && current !== editorApi.dateInput.value) {
-            editorApi.dateInput.value = current;
-            editorApi.loadForDate(current);
-          }
-        });
+      shell.onOpen = () => {
+        const select = viewerEl.querySelector('[data-cnp-date-select]');
+        const current = select ? select.value : null;
+        if (current && current !== editorApi.dateInput.value) {
+          editorApi.dateInput.value = current;
+          editorApi.loadForDate(current);
+        }
+      };
+      // 未保存の変更があるまま閉じようとしたら確認する（閉じるだけでは保存されないため）
+      shell.onBeforeClose = () =>
+        !editorApi.isDirty() || window.confirm('保存されていない変更があります。保存せずに閉じますか？');
+      // ヘッダー側（「編集を閉じる」の左隣）の保存ボタン
+      if (shell.headerSaveBtn) {
+        shell.headerSaveBtn.addEventListener('click', () => editorApi.save());
       }
     }
   }
