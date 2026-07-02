@@ -313,16 +313,22 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="cnp-owner-badge">✅ ${ctx.owner ? 'CNP Owner確認済み' : 'アクセス確認済み'}</span>
         ${editorToggle}
       </div>
-      <div class="cnp-entry-viewer" data-cnp-viewer></div>
       <div class="cnp-entry-editor hidden" data-cnp-editor></div>
+      <div class="cnp-entry-viewer" data-cnp-viewer></div>
     `;
 
     const editorToggleBtn = body.querySelector('[data-cnp-editor-toggle]');
     const editorEl = body.querySelector('[data-cnp-editor]');
     const viewerEl = body.querySelector('[data-cnp-viewer]');
     if (editorToggleBtn) {
+      // フォームは記事本文より上（ボタン直下）に開く。長い記事の下に開くと
+      // 画面上何も起きていないように見えるため（Brave等での実測不具合）。
       editorToggleBtn.addEventListener('click', () => {
-        editorEl.classList.toggle('hidden');
+        const opened = editorEl.classList.toggle('hidden') === false;
+        editorToggleBtn.textContent = opened ? '✖ 編集を閉じる' : '✏️ 記事を書く・編集';
+        if (opened) {
+          editorEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
       });
     }
 
