@@ -152,6 +152,201 @@ class TestGrouping(unittest.TestCase):
         self.assertEqual(len(groups[0]["messages"]), 10)
 
 
+class TestDailyWindow(unittest.TestCase):
+    """--daily-window（時間窓・日毎まとめモード）のテスト。"""
+
+    def test_only_within_window_jst_boundary(self):
+        """(a) JST4-10時台のみ拾う。JST4時=UTC前日19時の境界を含む。"""
+        messages = [
+            # JST 2026-07-02T03:59:59 (窓外・直前) -> UTC 2026-07-01T18:59:59
+            make_message("1", AUTHOR_ID, "窓の直前（対象外）", "2026-07-01T18:59:59.000000+00:00"),
+            # JST 2026-07-02T04:00:00 (窓の開始・境界) -> UTC 2026-07-01T19:00:00
+            make_message("2", AUTHOR_ID, "窓の開始（対象）", "2026-07-01T19:00:00.000000+00:00"),
+            # JST 2026-07-02T09:59:59 (窓の終端直前・対象) -> UTC 2026-07-02T00:59:59
+            make_message("3", AUTHOR_ID, "窓の終端直前（対象）", "2026-07-02T00:59:59.000000+00:00"),
+            # JST 2026-07-02T10:00:00 (窓外・終端) -> UTC 2026-07-02T01:00:00
+            make_message("4", AUTHOR_ID, "窓の終端（対象外）", "2026-07-02T01:00:00.000000+00:00"),
+        ]
+        groups = cd.group_messages_by_daily_window(messages, AUTHOR_ID, (4, 10))
+        self.assertEqual(len(groups), 1)
+        contents = [m["content"] for m in groups[0]["messages"]]
+        self.assertEqual(contents, ["窓の開始（対象）", "窓の終端直前（対象）"])
+
+    def test_same_day_multiple_messages_combined(self):
+        """(b) 同日複数メッセージが1記事に連結される（30分超間隔でも打ち切らない）。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "朝1件目", "2026-07-01T19:00:00.000000+00:00"),  # JST 4:00
+            make_message("2", AUTHOR_ID, "朝2件目（1時間後）", "2026-07-01T20:00:00.000000+00:00"),  # JST 5:00
+            make_message("3", AUTHOR_ID, "朝3件目（さらに2時間後）", "2026-07-01T22:00:00.000000+00:00"),  # JST 7:00
+        ]
+        groups = cd.group_messages_by_daily_window(messages, AUTHOR_ID, (4, 10))
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0]["messages"]), 3)
+
+    def test_multiple_days_become_separate_entries(self):
+        """(c) 複数日にまたがる投稿は日毎に別記事になる。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "1日目", "2026-07-01T19:00:00.000000+00:00"),  # JST 7/2 4:00
+            make_message("2", AUTHOR_ID, "2日目", "2026-07-02T19:00:00.000000+00:00"),  # JST 7/3 4:00
+        ]
+        groups = cd.group_messages_by_daily_window(messages, AUTHOR_ID, (4, 10))
+        self.assertEqual(len(groups), 2)
+        self.assertEqual(len(groups[0]["messages"]), 1)
+        self.assertEqual(len(groups[1]["messages"]), 1)
+
+    def test_other_author_and_out_of_window_ignored_but_no_cutoff(self):
+        """他authorの投稿や窓外投稿が間に挟まっても対象メッセージの連結は打ち切られない。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "朝1件目", "2026-07-01T19:00:00.000000+00:00"),  # JST 4:00
+            make_message("2", OTHER_ID, "野次馬（窓内だが他author）", "2026-07-01T19:30:00.000000+00:00"),
+            make_message("3", AUTHOR_ID, "朝2件目", "2026-07-01T20:00:00.000000+00:00"),  # JST 5:00
+        ]
+        groups = cd.group_messages_by_daily_window(messages, AUTHOR_ID, (4, 10))
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0]["messages"]), 2)
+
+    def test_title_is_first_non_empty_line_of_first_message(self):
+        """(d) タイトル=その日の最初のメッセージの最初の非空行。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "\n\n本日の分析タイトル\n続きの本文", "2026-07-01T19:00:00.000000+00:00"),
+            make_message("2", AUTHOR_ID, "続き2件目", "2026-07-01T20:00:00.000000+00:00"),
+        ]
+        groups = cd.group_messages_by_daily_window(messages, AUTHOR_ID, (4, 10))
+        out_dir = tempfile.mkdtemp(prefix="cnp_collect_dw_title_")
+        try:
+            session = MagicMock()
+            entry = cd.build_entry(session, "fake-token", groups[0], out_dir, dup_index=0)
+            self.assertEqual(entry["title"], "本日の分析タイトル")
+        finally:
+            shutil.rmtree(out_dir, ignore_errors=True)
+
+    def test_anchor_number_detected_if_present(self):
+        """(e) 連結後の本文に「分析N回目」があれば番号を設定、無ければNone。"""
+        messages_with_anchor = [
+            make_message("1", AUTHOR_ID, "おはようございます", "2026-07-01T19:00:00.000000+00:00"),
+            make_message("2", AUTHOR_ID, "分析1502回目の内容です", "2026-07-01T20:00:00.000000+00:00"),
+        ]
+        groups = cd.group_messages_by_daily_window(messages_with_anchor, AUTHOR_ID, (4, 10))
+        self.assertEqual(groups[0]["number"], 1502)
+
+        messages_without_anchor = [
+            make_message("1", AUTHOR_ID, "おはようございます", "2026-07-01T19:00:00.000000+00:00"),
+            make_message("2", AUTHOR_ID, "今日も相場をみていきます", "2026-07-01T20:00:00.000000+00:00"),
+        ]
+        groups2 = cd.group_messages_by_daily_window(messages_without_anchor, AUTHOR_ID, (4, 10))
+        self.assertIsNone(groups2[0]["number"])
+
+    def test_parse_daily_window_valid_and_invalid(self):
+        self.assertEqual(cd.parse_daily_window("4-10"), (4, 10))
+        with self.assertRaises(ValueError):
+            cd.parse_daily_window("10-4")
+        with self.assertRaises(ValueError):
+            cd.parse_daily_window("not-a-window")
+
+    def test_daily_window_and_anchor_keyword_conflict_in_cli(self):
+        """CLIレベルで --daily-window と --anchor-keyword の同時指定はエラーになる。"""
+        import subprocess
+
+        script_path = os.path.join(os.path.dirname(__file__), "collect_discord.py")
+        env = dict(os.environ)
+        env["DISCORD_BOT_TOKEN"] = "dummy"
+        result = subprocess.run(
+            [
+                sys.executable, script_path,
+                "--channel", "1", "--author", AUTHOR_ID,
+                "--daily-window", "4-10", "--anchor-keyword", "分析",
+            ],
+            capture_output=True, text=True, env=env,
+        )
+        self.assertNotEqual(result.returncode, 0)
+
+
+class TestMinChars(unittest.TestCase):
+    def test_min_chars_excludes_short_followups(self):
+        """--min-chars 指定時、短い後続メッセージは連結対象から除外される。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "分析1502回目\n本文", "2026-07-02T10:00:00.000000+00:00"),
+            make_message("2", AUTHOR_ID, "OK", "2026-07-02T10:05:00.000000+00:00"),  # 短いので除外
+            make_message("3", AUTHOR_ID, "これはそこそこ長い後続コメントです", "2026-07-02T10:10:00.000000+00:00"),
+        ]
+        groups = cd.group_messages_into_entries(messages, AUTHOR_ID, min_chars=5)
+        self.assertEqual(len(groups), 1)
+        contents = [m["content"] for m in groups[0]["messages"]]
+        self.assertNotIn("OK", contents)
+        self.assertIn("これはそこそこ長い後続コメントです", contents)
+
+    def test_min_chars_applied_in_daily_window_mode(self):
+        """時間窓モードでも --min-chars で短いメッセージが除外される。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "おはよう", "2026-07-01T19:00:00.000000+00:00"),  # 4文字・除外
+            make_message("2", AUTHOR_ID, "本日の分析はこちらになります", "2026-07-01T20:00:00.000000+00:00"),
+        ]
+        groups = cd.group_messages_by_daily_window(messages, AUTHOR_ID, (4, 10), min_chars=10)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0]["messages"]), 1)
+        self.assertEqual(groups[0]["messages"][0]["content"], "本日の分析はこちらになります")
+
+
+class TestCleanContent(unittest.TestCase):
+    def test_mentions_removed(self):
+        text = "こんにちは<@123456>さん <@!789>くん <@&555>ロール <#222>チャンネル"
+        cleaned = cd.clean_content(text)
+        self.assertNotIn("<@123456>", cleaned)
+        self.assertNotIn("<@!789>", cleaned)
+        self.assertNotIn("<@&555>", cleaned)
+        self.assertNotIn("<#222>", cleaned)
+
+    def test_custom_emoji_replaced(self):
+        text = "上昇しました<:pepe_up:1234567890> 参考<a:loading:987>"
+        cleaned = cd.clean_content(text)
+        self.assertIn(":pepe_up:", cleaned)
+        self.assertIn(":loading:", cleaned)
+        self.assertNotIn("<:pepe_up:1234567890>", cleaned)
+        self.assertNotIn("<a:loading:987>", cleaned)
+
+    def test_blank_lines_compressed(self):
+        text = "1行目\n\n\n\n\n2行目"
+        cleaned = cd.clean_content(text)
+        self.assertEqual(cleaned, "1行目\n\n2行目")
+
+    def test_trailing_spaces_stripped(self):
+        text = "1行目   \n2行目\t\t\n3行目"
+        cleaned = cd.clean_content(text)
+        self.assertEqual(cleaned, "1行目\n2行目\n3行目")
+
+    def test_symbols_and_unicode_emoji_preserved(self):
+        """矢印記号やUnicode絵文字は分析内容なので消さずに残す。"""
+        text = "フロア↑↓－⇒上昇トレンド 🚀📈"
+        cleaned = cd.clean_content(text)
+        self.assertIn("↑", cleaned)
+        self.assertIn("↓", cleaned)
+        self.assertIn("－", cleaned)
+        self.assertIn("⇒", cleaned)
+        self.assertIn("🚀", cleaned)
+        self.assertIn("📈", cleaned)
+
+    def test_clean_applied_via_build_entry(self):
+        """--clean 指定時、build_entry経由でも本文がクリーンになる。"""
+        messages = [
+            make_message(
+                "1", AUTHOR_ID,
+                "分析1502回目<@123>さん\nフロア↑上昇中<:pepe:999>\n\n\n\n続き",
+                "2026-07-02T10:00:00.000000+00:00",
+            ),
+        ]
+        groups = cd.group_messages_into_entries(messages, AUTHOR_ID)
+        out_dir = tempfile.mkdtemp(prefix="cnp_collect_clean_")
+        try:
+            session = MagicMock()
+            entry = cd.build_entry(session, "fake-token", groups[0], out_dir, dup_index=0, clean=True)
+            self.assertNotIn("<@123>", entry["body_md"])
+            self.assertNotIn("<:pepe:999>", entry["body_md"])
+            self.assertIn(":pepe:", entry["body_md"])
+            self.assertIn("↑", entry["body_md"])
+        finally:
+            shutil.rmtree(out_dir, ignore_errors=True)
+
+
 class TestPublishedDate(unittest.TestCase):
     def test_published_date_is_previous_day_jst(self):
         """掲載日 = 投稿日時(JST)の前日。7/2 21:15 JST投稿 -> 掲載日7/1。"""
