@@ -9,6 +9,8 @@ requests.Session.get / requests.get を unittest.mock でモックし、偽のDi
   4. 画像の位置と命名
   5. 同一掲載日重複 → _2.md ＋確認リストへの警告
   6. ページング（before= で2ページ以上）と429リトライ
+  7. 収集ルールv2（自動判定モード・--rule-v2）: ルール1/2/3の優先順位、
+     クラスタ分割（30分間隔・アンカー前投稿含む・複数アンカー統合）、15件上限
 
 実行方法:
   cd deploy/auth/scripts
@@ -641,6 +643,204 @@ class TestEndToEndCollect(unittest.TestCase):
         self.assertIn("本文A", content)
         self.assertIn("続きA", content)
         self.assertNotIn("野次馬コメント", content)
+
+
+class TestRuleV2(unittest.TestCase):
+    """収集ルールv2（自動判定モード・--rule-v2）のテスト。"""
+
+    def test_rule1_priority_over_date_header(self):
+        """ルール1優先: 「分析N回目」がある日は日付ヘッダーがあってもルール1として拾う。"""
+        messages = [
+            make_message(
+                "1", AUTHOR_ID, "3/16（木）06：30頃\nおはようございます",
+                "2026-03-15T21:00:00.000000+00:00",  # JST 3/16 6:00
+            ),
+            make_message(
+                "2", AUTHOR_ID, "分析1502回目\n本文",
+                "2026-03-15T21:10:00.000000+00:00",  # JST 3/16 6:10
+            ),
+        ]
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["rule"], 1)
+        self.assertEqual(groups[0]["number"], 1502)
+        # ルール1: 30分以内で繋がる同じクラスタなので両方含まれる
+        self.assertEqual(len(groups[0]["messages"]), 2)
+
+    def test_rule2_date_header_variants(self):
+        """ルール2: 日付ヘッダーの表記揺れ（全角/半角括弧・全角コロン・「頃」なし）を検出する。"""
+        variants = [
+            "3/16（木）06：30頃",  # 全角括弧+全角コロン+頃
+            "3/16(木) 06:30頃",     # 半角括弧+半角コロン+頃
+            "3/16（木）06：30",     # 頃なし
+            "3/16(木)06:30",        # 半角・頃なし・空白なし
+        ]
+        for text in variants:
+            with self.subTest(text=text):
+                self.assertTrue(cd.has_date_header(text), f"検出できませんでした: {text}")
+
+    def test_rule2_used_when_no_rule1(self):
+        """分析N回目が無い日は日付ヘッダーをアンカーとしてルール2で拾う。"""
+        messages = [
+            make_message(
+                "1", AUTHOR_ID, "3/16（木）06：30頃\n本日の相場は…",
+                "2026-03-15T21:00:00.000000+00:00",  # JST 3/16 6:00
+            ),
+            make_message(
+                "2", AUTHOR_ID, "続きのコメント",
+                "2026-03-15T21:10:00.000000+00:00",
+            ),
+        ]
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["rule"], 2)
+        self.assertIsNone(groups[0]["number"])
+        self.assertEqual(len(groups[0]["messages"]), 2)
+
+    def test_rule3_fallback_window(self):
+        """ルール3フォールバック: アンカー無しの日は朝4-10時窓、窓外のみの日は記事なし。"""
+        messages = [
+            # 3/16: アンカー無し、朝5時台の投稿のみ -> ルール3で拾われる
+            make_message("1", AUTHOR_ID, "朝の一言", "2026-03-15T20:00:00.000000+00:00"),  # JST 3/16 5:00
+            # 3/17: アンカー無し、投稿は昼(窓外)のみ -> 記事なし
+            make_message("2", AUTHOR_ID, "昼の一言", "2026-03-17T03:00:00.000000+00:00"),  # JST 3/17 12:00
+        ]
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["rule"], 3)
+        self.assertEqual(len(groups[0]["messages"]), 1)
+        self.assertEqual(groups[0]["messages"][0]["content"], "朝の一言")
+
+    def test_other_author_interrupt_does_not_break_cluster(self):
+        """他authorの割り込みがあってもクラスタが繋がる（対象author投稿だけを見るため）。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "分析1502回目\n本文", "2026-07-02T01:00:00.000000+00:00"),
+            make_message("2", OTHER_ID, "横から失礼", "2026-07-02T01:05:00.000000+00:00"),
+            make_message("3", AUTHOR_ID, "続き（他人の割り込み後でも連結）", "2026-07-02T01:10:00.000000+00:00"),
+        ]
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0]["messages"]), 2)
+        contents = [m["content"] for m in groups[0]["messages"]]
+        self.assertIn("続き（他人の割り込み後でも連結）", contents)
+
+    def test_messages_before_anchor_included_in_cluster(self):
+        """アンカーより前の投稿もクラスタ内なら含まれる。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "おはようございます", "2026-07-02T01:00:00.000000+00:00"),
+            make_message("2", AUTHOR_ID, "分析1502回目\n本文", "2026-07-02T01:10:00.000000+00:00"),
+            make_message("3", AUTHOR_ID, "続き", "2026-07-02T01:15:00.000000+00:00"),
+        ]
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0]["messages"]), 3)
+        self.assertEqual(groups[0]["messages"][0]["content"], "おはようございます")
+
+    def test_gap_over_30min_splits_cluster_only_anchor_side_kept(self):
+        """30分超の間隔でクラスタが分かれ、アンカーを含む方だけ採用される。"""
+        messages = [
+            # クラスタA（アンカー無し）
+            make_message("1", AUTHOR_ID, "昨夜の雑談メモ", "2026-07-02T00:00:00.000000+00:00"),
+            # 31分以上の間隔 -> クラスタ分割
+            make_message("2", AUTHOR_ID, "分析1502回目\n本文", "2026-07-02T01:00:00.000000+00:00"),
+            make_message("3", AUTHOR_ID, "続き", "2026-07-02T01:05:00.000000+00:00"),
+        ]
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        self.assertEqual(len(groups), 1)
+        contents = [m["content"] for m in groups[0]["messages"]]
+        self.assertNotIn("昨夜の雑談メモ", contents)
+        self.assertIn("分析1502回目\n本文", contents)
+        self.assertIn("続き", contents)
+
+    def test_multiple_anchors_same_day_merged_into_one_entry(self):
+        """同日複数アンカー→1記事に統合される。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "分析1502回目\n本文A", "2026-07-02T00:00:00.000000+00:00"),
+            # 31分以上あけて2つ目のクラスタ（別アンカー）
+            make_message("2", AUTHOR_ID, "分析1503回目\n本文B", "2026-07-02T02:00:00.000000+00:00"),
+        ]
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0]["messages"]), 2)
+        # 番号は結合後の本文から検出される最初の一致（1502）
+        self.assertEqual(groups[0]["number"], 1502)
+
+    def test_cluster_message_limit_15_with_warning(self):
+        """15件上限で打ち切られ、警告が記録される。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "分析1502回目\n本文", "2026-07-02T00:00:00.000000+00:00"),
+        ]
+        for k in range(2, 20):  # 合計19件（上限15を超える）
+            messages.append(
+                make_message(
+                    str(k), AUTHOR_ID, f"続き{k}",
+                    f"2026-07-02T00:{k:02d}:00.000000+00:00",
+                )
+            )
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0]["messages"]), cd.RULE_V2_MAX_CLUSTER_MESSAGES)
+        self.assertTrue(any("15" in w or "件を超え" in w for w in warnings))
+
+    def test_rule_v2_and_anchor_keyword_conflict_in_cli(self):
+        """CLIレベルで --rule-v2 と --anchor-keyword の同時指定はエラーになる。"""
+        import subprocess
+
+        script_path = os.path.join(os.path.dirname(__file__), "collect_discord.py")
+        env = dict(os.environ)
+        env["DISCORD_BOT_TOKEN"] = "dummy"
+        result = subprocess.run(
+            [
+                sys.executable, script_path,
+                "--channel", "1", "--author", AUTHOR_ID,
+                "--rule-v2", "--anchor-keyword", "分析",
+            ],
+            capture_output=True, text=True, env=env,
+        )
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_rule_v2_and_daily_window_conflict_in_cli(self):
+        """CLIレベルで --rule-v2 と --daily-window の同時指定はエラーになる。"""
+        import subprocess
+
+        script_path = os.path.join(os.path.dirname(__file__), "collect_discord.py")
+        env = dict(os.environ)
+        env["DISCORD_BOT_TOKEN"] = "dummy"
+        result = subprocess.run(
+            [
+                sys.executable, script_path,
+                "--channel", "1", "--author", AUTHOR_ID,
+                "--rule-v2", "--daily-window", "4-10",
+            ],
+            capture_output=True, text=True, env=env,
+        )
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_confirmation_report_includes_rule_column(self):
+        """確認リストに「どのルールで拾ったか」の列が出力される。"""
+        messages = [
+            make_message("1", AUTHOR_ID, "分析1502回目\n本文", "2026-07-02T00:00:00.000000+00:00"),
+        ]
+        warnings = []
+        groups = cd.group_messages_rule_v2(messages, AUTHOR_ID, warnings=warnings)
+        out_dir = tempfile.mkdtemp(prefix="cnp_collect_rulev2_report_")
+        try:
+            session = MagicMock()
+            entry = cd.build_entry(session, "fake-token", groups[0], out_dir, dup_index=0)
+            self.assertEqual(entry["rule"], 1)
+            report = cd.build_confirmation_report([entry])
+            self.assertIn("ルール", report)
+            self.assertIn("ルール1", report)
+        finally:
+            shutil.rmtree(out_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":
