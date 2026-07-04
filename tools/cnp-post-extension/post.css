@@ -1,0 +1,150 @@
+/* CNP TIMES 投稿ツール: post.html 用スタイル */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: #f7f7f9;
+  color: #1a1a1a;
+}
+
+.cnp-post-app {
+  padding: 16px 18px 24px;
+}
+
+.cnp-post-title {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+
+.cnp-banner {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.cnp-banner-warn {
+  background: #fff3cd;
+  border: 1px solid #ffe08a;
+  color: #7a5900;
+}
+
+.cnp-banner-error {
+  background: #fde2e2;
+  border: 1px solid #f5a3a3;
+  color: #8a1f1f;
+}
+
+.cnp-banner a {
+  color: #1a56db;
+}
+
+.cnp-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 4px;
+  color: #1a56db;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.cnp-field {
+  margin-bottom: 12px;
+}
+
+.cnp-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #444;
+}
+
+.cnp-field input[type="date"],
+.cnp-field input[type="text"],
+.cnp-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.cnp-field textarea {
+  resize: vertical;
+  min-height: 220px;
+  line-height: 1.5;
+}
+
+.cnp-hint {
+  font-size: 11px;
+  color: #777;
+  margin: 4px 0 0;
+}
+
+.cnp-status {
+  min-height: 18px;
+  font-size: 12px;
+  color: #444;
+}
+
+.cnp-status.cnp-status-error {
+  color: #c0392b;
+}
+
+.cnp-status.cnp-status-ok {
+  color: #1a7f37;
+}
+
+.cnp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cnp-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cnp-btn-primary {
+  background: #1a56db;
+  border-color: #1a56db;
+  color: #fff;
+  font-weight: 600;
+}
+
+.cnp-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cnp-success {
+  margin-top: 16px;
+  padding: 12px;
+  background: #eaf7ee;
+  border: 1px solid #b7e4c7;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.cnp-success a {
+  color: #1a56db;
+}
+
+.hidden {
+  display: none !important;
+}

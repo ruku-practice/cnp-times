@@ -39,6 +39,7 @@ os.environ["FRONTEND_URL"] = "https://example.github.io/cnp-times/advanced.html"
 os.environ["ALLOWED_ORIGIN"] = "https://example.github.io"
 os.environ["CONTENT_DIR"] = _TEST_CONTENT_DIR
 os.environ["EDITOR_USER_IDS"] = "editor-1,editor-2"
+os.environ["EDITOR_API_KEYS"] = "cnpt_testkey123:apikey-user-1:APIキー太郎"
 # GCS_BUCKET は意図的に未設定のままにする（ローカルストレージを使わせる）
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -440,6 +441,182 @@ class ApiEntriesTests(unittest.TestCase):
             headers=self._auth(editor_token),
         )
         self.assertEqual(resp.status_code, 400)
+
+
+class ApiKeyAuthTests(unittest.TestCase):
+    """長期APIキー認証（Chrome拡張用）: X-Api-Key ヘッダーによる認証・posted_at受け入れ。"""
+
+    VALID_KEY = "cnpt_testkey123"
+
+    def setUp(self):
+        app_module.app.testing = True
+        self.client = app_module.app.test_client()
+        app_module.reset_storage_cache()
+        _cleanup_content_dir()
+
+    def tearDown(self):
+        app_module.reset_storage_cache()
+        _cleanup_content_dir()
+
+    # 正しいAPIキーでPUTが成功し、author情報がキーに紐づくユーザーになる
+    def test_valid_api_key_put_succeeds_with_author_from_key(self):
+        resp = self.client.put(
+            "/api/entries/2026-07-01",
+            json={"title": "APIキー投稿", "body_md": "本文です"},
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(data["author_id"], "apikey-user-1")
+        self.assertEqual(data["author_name"], "APIキー太郎")
+
+        # 読み込みもAPIキーでできる（owner/editor権限フルとして扱われる）
+        get_resp = self.client.get(
+            "/api/entries/2026-07-01", headers={"X-Api-Key": self.VALID_KEY}
+        )
+        self.assertEqual(get_resp.status_code, 200)
+
+        list_resp = self.client.get("/api/entries", headers={"X-Api-Key": self.VALID_KEY})
+        self.assertEqual(list_resp.status_code, 200)
+
+    # 不正なAPIキーは401
+    def test_invalid_api_key_returns_401(self):
+        resp = self.client.put(
+            "/api/entries/2026-07-01",
+            json={"title": "x", "body_md": "y"},
+            headers={"X-Api-Key": "cnpt_wrongkey"},
+        )
+        self.assertEqual(resp.status_code, 401)
+
+        get_resp = self.client.get(
+            "/api/entries", headers={"X-Api-Key": "cnpt_wrongkey"}
+        )
+        self.assertEqual(get_resp.status_code, 401)
+
+    # 空文字のAPIキーヘッダーは「ヘッダー無し」と同じ扱い（従来のJWT検証に落ちて401）
+    def test_empty_api_key_header_falls_back_and_returns_401(self):
+        resp = self.client.get("/api/entries", headers={"X-Api-Key": ""})
+        self.assertEqual(resp.status_code, 401)
+
+    # APIキーもJWTも無ければ従来通り401（既存挙動維持）
+    def test_no_api_key_no_jwt_returns_401(self):
+        resp = self.client.get("/api/entries")
+        self.assertEqual(resp.status_code, 401)
+
+    # APIキー未設定時、JWTでのアクセスは従来通り機能する（既存フロー無変更）
+    def test_jwt_still_works_when_no_api_key_header_present(self):
+        token = app_module._issue_session_jwt("editor-1", "分析者", False, [], editor=True)
+        resp = self.client.put(
+            "/api/entries/2026-07-01",
+            json={"title": "JWT投稿", "body_md": "本文"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        self.assertEqual(resp.status_code, 200)
+
+    # 新規記事作成時、bodyのposted_atが採用される
+    def test_posted_at_adopted_on_new_entry(self):
+        resp = self.client.put(
+            "/api/entries/2026-07-01",
+            json={
+                "title": "新規記事",
+                "body_md": "本文",
+                "posted_at": "2026-07-01T21:00:00+09:00",
+            },
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(data["posted_at"], "2026-07-01T21:00:00+09:00")
+
+    # 既存記事にposted_atが既にある場合、bodyの新しい値では上書きされない（改ざん防止）
+    def test_posted_at_not_overwritten_when_existing_value_present(self):
+        self.client.put(
+            "/api/entries/2026-07-01",
+            json={
+                "title": "初回",
+                "body_md": "本文1",
+                "posted_at": "2026-07-01T21:00:00+09:00",
+            },
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        resp = self.client.put(
+            "/api/entries/2026-07-01",
+            json={
+                "title": "更新",
+                "body_md": "本文2",
+                "posted_at": "2026-07-02T09:00:00+09:00",
+            },
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(data["posted_at"], "2026-07-01T21:00:00+09:00")
+        self.assertEqual(data["title"], "更新")
+
+    # 既存記事にposted_atが無い場合は後から採用できる（Webエディタで作成→拡張はまだ無いケース）
+    def test_posted_at_adopted_when_existing_entry_has_none(self):
+        self.client.put(
+            "/api/entries/2026-07-01",
+            json={"title": "Web作成", "body_md": "本文1"},
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        resp = self.client.put(
+            "/api/entries/2026-07-01",
+            json={
+                "title": "Web作成",
+                "body_md": "本文2",
+                "posted_at": "2026-07-02T09:00:00+09:00",
+            },
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(data["posted_at"], "2026-07-02T09:00:00+09:00")
+
+    # 不正な形式のposted_atは無視される（採用されない・エラーにもしない）
+    def test_invalid_posted_at_format_is_ignored(self):
+        resp = self.client.put(
+            "/api/entries/2026-07-01",
+            json={
+                "title": "不正日時",
+                "body_md": "本文",
+                "posted_at": "not-a-date",
+            },
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertNotIn("posted_at", data)
+
+    # posted_atが無いリクエストは従来通り何も付与しない
+    def test_missing_posted_at_is_fine(self):
+        resp = self.client.put(
+            "/api/entries/2026-07-01",
+            json={"title": "posted_atなし", "body_md": "本文"},
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertNotIn("posted_at", data)
+
+    # APIキーで画像アップロードもできる（editor権限フル）
+    def test_api_key_can_upload_image(self):
+        data = {"file": (io.BytesIO(b"\x89PNG\r\n\x1a\nfakepngdata"), "photo.png")}
+        resp = self.client.post(
+            "/api/images",
+            data=data,
+            content_type="multipart/form-data",
+            headers={"X-Api-Key": self.VALID_KEY},
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.get_json()["url"].startswith("/api/images/"))
+
+    # CORSプリフライトのAllow-HeadersにX-Api-Keyが含まれる
+    def test_cors_preflight_allows_api_key_header(self):
+        resp = self.client.options("/api/entries")
+        allow_headers = resp.headers.get("Access-Control-Allow-Headers", "")
+        self.assertIn("X-Api-Key", allow_headers)
+        self.assertIn("Authorization", allow_headers)
 
 
 class ApiImagesTests(unittest.TestCase):

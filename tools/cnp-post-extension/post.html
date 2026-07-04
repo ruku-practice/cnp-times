@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>CNP TIMESに投稿</title>
+<link rel="stylesheet" href="post.css">
+</head>
+<body>
+  <div class="cnp-post-app">
+    <h1 class="cnp-post-title">CNP TIMESに投稿</h1>
+
+    <div id="no-key-banner" class="cnp-banner cnp-banner-error hidden">
+      APIキーが設定されていません。
+      <a href="#" id="open-options-link">設定画面を開く</a>
+    </div>
+
+    <div id="existing-banner" class="cnp-banner cnp-banner-warn hidden">
+      ⚠ この日付には既に記事があります。保存すると上書きされます。
+      <button type="button" id="load-existing-btn" class="cnp-link-btn">既存内容を読み込む</button>
+    </div>
+
+    <form id="post-form">
+      <div class="cnp-field">
+        <label for="date-input">日付（掲載日）</label>
+        <input type="date" id="date-input" required>
+      </div>
+
+      <div class="cnp-field">
+        <label for="title-input">タイトル</label>
+        <input type="text" id="title-input" placeholder="タイトル" required>
+      </div>
+
+      <div class="cnp-field">
+        <label for="body-input">本文（Markdown）</label>
+        <textarea id="body-input" rows="14" placeholder="本文をMarkdownで入力。画像はCmd/Ctrl+Vでペースト可能です。" required></textarea>
+        <p class="cnp-hint">本文欄に画像をペースト（Cmd/Ctrl+V）すると自動でアップロードされ、カーソル位置に挿入されます。</p>
+      </div>
+
+      <p id="status-msg" class="cnp-status" aria-live="polite"></p>
+
+      <div class="cnp-actions">
+        <button type="submit" id="save-btn" class="cnp-btn cnp-btn-primary">保存</button>
+      </div>
+    </form>
+
+    <div id="success-box" class="cnp-success hidden">
+      <p>✅ 投稿しました。</p>
+      <a id="site-link" href="https://ruku-practice.github.io/cnp-times/advanced.html" target="_blank" rel="noopener">サイトを開く</a>
+    </div>
+  </div>
+
+  <script src="logic.js"></script>
+  <script src="api.js"></script>
+  <script src="post.js"></script>
+</body>
+</html>

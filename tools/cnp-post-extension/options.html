@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>CNP TIMES 投稿ツール - 設定</title>
+<link rel="stylesheet" href="post.css">
+</head>
+<body>
+  <div class="cnp-post-app">
+    <h1 class="cnp-post-title">設定</h1>
+
+    <p class="cnp-hint">
+      るくさんから受け取ったAPIキーを貼り付けて保存してください。
+      キーは このブラウザの中だけに保存され、外部には送信されません。
+    </p>
+
+    <form id="options-form">
+      <div class="cnp-field">
+        <label for="api-key-input">APIキー</label>
+        <input type="text" id="api-key-input" placeholder="cnpt_ で始まるキーを貼り付け" autocomplete="off">
+      </div>
+
+      <p id="status-msg" class="cnp-status" aria-live="polite"></p>
+
+      <div class="cnp-actions">
+        <button type="button" id="test-btn" class="cnp-btn">接続テスト</button>
+        <button type="submit" id="save-btn" class="cnp-btn cnp-btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

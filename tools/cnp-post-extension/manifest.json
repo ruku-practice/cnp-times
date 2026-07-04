@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "CNP TIMES 投稿ツール",
+  "version": "1.0.0",
+  "description": "選択したテキストをCNP TIMESの詳細分析コメントとして投稿するための拡張機能",
+  "permissions": ["contextMenus", "storage"],
+  "host_permissions": [
+    "https://cnp-auth-289412336991.asia-northeast1.run.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "CNP TIMESに投稿",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

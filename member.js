@@ -475,8 +475,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function yesterdayJst() {
     // 掲載日=投稿日の前日ルールに合わせ、JSTの「昨日」を YYYY-MM-DD で返す
+    // （todayJstと同じく、ブラウザのタイムゾーンに依存しないようUTC+9時間で計算）
     const now = new Date();
-    const jst = new Date(now.getTime() + (9 * 60 - now.getTimezoneOffset()) * 60000 - 24 * 60 * 60 * 1000);
+    const jst = new Date(now.getTime() + 9 * 60 * 60000 - 24 * 60 * 60 * 1000);
     return jst.toISOString().slice(0, 10);
   }
 
