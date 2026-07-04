@@ -11,7 +11,8 @@
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
   "tx": "0xa169178ee990d668efd1dc8ae3542f3be16370d17d3f886802465e001287dcd0",
   "from_cnp": 0,
-  "to_cnp": 99
+  "to_cnp": 99,
+  "currency": "WETH"
  },
  {
   "date": "2026-07-04",
@@ -25,7 +26,8 @@
   "to": "0xfe23B7AC4b333d7B9815Fa6f930AdD2A0b117795",
   "tx": "0x533605d1410d0ec3d909b2e85d6bbc25ffcd597a1f0956f1e32d9616012ecb32",
   "from_cnp": 10,
-  "to_cnp": 7
+  "to_cnp": 7,
+  "currency": "ETH"
  },
  {
   "date": "2026-07-04",
@@ -39,6 +41,7 @@
   "to": "0x1A3326bf12589eE53b3f796c9D376EA3df60d459",
   "tx": "0xb9bc2130375ee8f0ff501fe9272ca88c2bcaf5325410daee9bdad29d4f74781b",
   "from_cnp": 10,
-  "to_cnp": 16
+  "to_cnp": 16,
+  "currency": "ETH"
  }
 ]
