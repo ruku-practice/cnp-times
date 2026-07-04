@@ -238,6 +238,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return resp.json();
   }
 
+  // 記事一覧の取得を1回にまとめる（認証確認と並行して先読みし、モード切替でも再取得しない）
+  let entriesPromise = null;
+  function fetchEntriesCached(token, force = false) {
+    if (force || !entriesPromise) {
+      entriesPromise = fetchEntries(token);
+      entriesPromise.catch(() => { entriesPromise = null; }); // 失敗時は次回再取得できるように
+    }
+    return entriesPromise;
+  }
+
   async function fetchEntry(token, date) {
     const resp = await fetch(AUTH_BASE_URL + '/api/entries/' + encodeURIComponent(date), {
       headers: { Authorization: 'Bearer ' + token }
@@ -374,55 +384,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     viewerEl.innerHTML = `
-      <p class="cnp-exclusive-msg cnp-sync-note hidden" data-cnp-sync-note></p>
       <div class="cnp-entry-content" data-cnp-entry-content>
         <p class="cnp-exclusive-msg">読み込み中...</p>
       </div>
     `;
 
-    const noteEl = viewerEl.querySelector('[data-cnp-sync-note]');
     const contentEl = viewerEl.querySelector('[data-cnp-entry-content]');
     const dates = entries.map((e) => e.date); // 日付降順
+    const entryCache = {}; // 一度読んだ記事は再取得しない（日付を行き来しても即表示）
     let displayedDate = null;
     let reqSeq = 0; // 連打時に古い取得結果が新しい表示を上書きしないための連番
 
-    function updateNote(requestedIso, shownDate) {
-      if (!requestedIso || requestedIso === shownDate) {
-        noteEl.classList.add('hidden');
-      } else {
-        noteEl.textContent = `${jpDateLabel(requestedIso)} の分析コメントはありません。直近の ${jpDateLabel(shownDate)} 分を表示しています。`;
-        noteEl.classList.remove('hidden');
-      }
-    }
-
     async function showForDate(requestedIso) {
-      // 選択日と一致する記事、無ければそれより前で直近の記事（datesは降順）
+      // 選択日と一致する記事のみ表示（無い日は「ひろゆきコメント無し」）
       const target = requestedIso
-        ? (dates.includes(requestedIso) ? requestedIso : dates.find((d) => d < requestedIso))
+        ? (dates.includes(requestedIso) ? requestedIso : null)
         : dates[0];
 
       if (!target) {
         displayedDate = null;
-        noteEl.classList.add('hidden');
-        contentEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(requestedIso))} 以前の分析コメントはありません。</p>`;
+        reqSeq += 1; // 取得中のものがあれば破棄
+        contentEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(requestedIso))} のひろゆきコメントはありません。</p>`;
         return;
       }
-      if (target === displayedDate) {
-        updateNote(requestedIso, target); // 記事は同じ。案内文だけ更新
-        return;
-      }
+      if (target === displayedDate) return;
 
       const myReq = ++reqSeq;
-      updateNote(requestedIso, target);
       contentEl.innerHTML = `<p class="cnp-exclusive-msg">読み込み中...</p>`;
       try {
         await ensureMarkdownLibs().catch(() => {});
-        const entry = await fetchEntry(token, target);
+        const entry = entryCache[target] || await fetchEntry(token, target);
         if (myReq !== reqSeq) return; // より新しい表示要求が来ている → この結果は破棄
         if (!entry) {
-          contentEl.innerHTML = `<p class="cnp-exclusive-msg">記事が見つかりませんでした。</p>`;
+          contentEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(target))} のひろゆきコメントはありません。</p>`;
           return;
         }
+        entryCache[target] = entry;
         contentEl.innerHTML = `
           <h3 class="cnp-exclusive-title">${escapeHtml(entry.title)}</h3>
           <p class="cnp-exclusive-updated">${escapeHtml(postedLabel(entry))}</p>
@@ -682,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let entries;
     try {
-      entries = await fetchEntries(token);
+      entries = await fetchEntriesCached(token);
     } catch (err) {
       console.error('[member.js] 記事一覧の取得に失敗しました:', err);
       entries = null;
@@ -710,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function reloadViewer() {
       try {
-        const list = await fetchEntries(token);
+        const list = await fetchEntriesCached(token, true); // 保存・削除後は取り直す
         viewerApi = renderViewer(viewerEl, token, list);
         if (viewerApi) viewerApi.showForDate(currentIso);
       } catch (err) {
@@ -765,6 +762,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (section) section.classList.add('hidden');
       return;
     }
+
+    // 体感速度向上: 認証確認を待たずに箱と「読み込み中」を先に出し、
+    // 記事一覧・Markdownライブラリも並行して先読みする（非ownerだった場合は後で隠す）
+    if (section) {
+      section.classList.remove('hidden');
+      const body = section.querySelector('[data-cnp-body]');
+      if (body) body.innerHTML = `<p class="cnp-exclusive-msg">読み込み中...</p>`;
+    }
+    fetchEntriesCached(token);
+    ensureMarkdownLibs().catch(() => {});
 
     try {
       const realMe = await fetchMe(token);

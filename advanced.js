@@ -382,12 +382,11 @@
   function renderSales(iso) {
     const panel = $('sales-panel');
     const seq = ++SALES_SEQ;
-    panel.innerHTML = `<div class="sales-head">🧾 ${jpDate(iso)} のセールス明細</div><div class="note">読み込み中…</div>`;
+    panel.innerHTML = ''; // 記録が無い日は箱ごと出さない（:emptyで非表示）
     fetch(`data/sales/${iso}.json`).then(r => r.ok ? r.json() : null).catch(() => null).then(sales => {
       if (seq !== SALES_SEQ) return; // 日付が変わっていたら破棄
       if (!sales || !sales.length) {
-        panel.innerHTML = `<div class="sales-head">🧾 ${jpDate(iso)} のセールス明細</div>` +
-          `<div class="note">この日のセールス記録はありません（明細の自動記録を順次蓄積しています）。</div>`;
+        panel.innerHTML = '';
         return;
       }
       let h = `<div class="sales-head">🧾 ${jpDate(iso)} のセールス（${sales.length}件）</div><div class="sales-list">`;
