@@ -498,9 +498,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function walletLabel(item) {
-    // ニックネームはOpenSeaから取得しない方針のため、短縮アドレスで表示する
+    // ニックネーム（OpenSea由来）があればそれを、無ければ短縮アドレスを表示する
     if (!item.wallet) return '不明';
-    return short_addr_js(item.wallet);
+    return item.wallet_name ? item.wallet_name : short_addr_js(item.wallet);
   }
 
   function short_addr_js(addr) {
@@ -513,7 +513,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return history.map((h) => formatEth(h.price)).join('→');
   }
 
+  // NFT個別ページはOpenSeaを見にいく（ユーザー指示）
+  const CNP_CONTRACT = '0x138A5C693279b6Cd82F48d4bEf563251Bc15ADcE';
+
   function renderListingsRow(item) {
+    const nftUrl = item.token
+      ? `https://opensea.io/item/ethereum/${CNP_CONTRACT}/${encodeURIComponent(item.token)}`
+      : null;
     const walletUrl = item.wallet ? `https://opensea.io/ja/${encodeURIComponent(item.wallet)}` : null;
     const walletCell = walletUrl
       ? `<a href="${walletUrl}" target="_blank" rel="noopener">${escapeHtml(walletLabel(item))}</a>`
@@ -527,10 +533,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return `
       <tr>
         <td class="cnp-listings-nft">
-          <div class="charcell">
+          ${nftUrl ? `<a href="${nftUrl}" target="_blank" rel="noopener" title="OpenSeaで#${escapeHtml(item.token)}を見る" class="charcell">` : '<div class="charcell">'}
             <img src="${escapeHtml(item.image || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
             <span>#${escapeHtml(item.token)}${item.character ? '　' + escapeHtml(item.character) : ''}</span>
-          </div>
+          ${nftUrl ? '</a>' : '</div>'}
         </td>
         <td class="mono">
           ${formatEth(item.price_eth)} ETH<br><span class="cnp-listings-jpy">${formatJpy(item.price_jpy)}</span>
