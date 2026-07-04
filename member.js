@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let reqSeq = 0; // 連打時に古い取得結果が新しい表示を上書きしないための連番
 
     async function showForDate(requestedIso) {
-      // 選択日と一致する記事のみ表示（無い日は「ひろゆきコメント無し」）
+      // 選択日と一致する記事のみ表示（無い日は「詳細分析コメント無し」）
       const target = requestedIso
         ? (dates.includes(requestedIso) ? requestedIso : null)
         : dates[0];
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!target) {
         displayedDate = null;
         reqSeq += 1; // 取得中のものがあれば破棄
-        contentEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(requestedIso))} のひろゆきコメントはありません。</p>`;
+        contentEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(requestedIso))} の詳細分析コメントはありません。</p>`;
         return;
       }
       if (target === displayedDate) return;
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const entry = entryCache[target] || await fetchEntry(token, target);
         if (myReq !== reqSeq) return; // より新しい表示要求が来ている → この結果は破棄
         if (!entry) {
-          contentEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(target))} のひろゆきコメントはありません。</p>`;
+          contentEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(target))} の詳細分析コメントはありません。</p>`;
           return;
         }
         entryCache[target] = entry;
