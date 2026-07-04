@@ -74,12 +74,23 @@ def parse_entry_file(path):
     rest = lines[1:]
     while rest and rest[0].strip() == "":
         rest = rest[1:]
+
+    # Discord発言日時のメタ行（collect_discord.pyが出力）: <!-- posted_at: ISO日時 -->
+    posted_at = None
+    if rest:
+        m = re.match(r"<!--\s*posted_at:\s*(\S+)\s*-->", rest[0].strip())
+        if m:
+            posted_at = m.group(1)
+            rest = rest[1:]
+            while rest and rest[0].strip() == "":
+                rest = rest[1:]
+
     body_md = "\n".join(rest).rstrip("\n")
 
     if not body_md:
         raise ValueError(f"{path}: 本文が空です")
 
-    return title, body_md
+    return title, body_md, posted_at
 
 
 def get_gcs_bucket(bucket_name):
@@ -177,7 +188,7 @@ def upload_dir(entries_dir, bucket_name, dry_run, force):
         date = stem
 
         try:
-            title, body_md = parse_entry_file(path)
+            title, body_md, posted_at = parse_entry_file(path)
         except ValueError as e:
             print(f"[ERROR] {e}")
             error_count += 1
@@ -205,6 +216,8 @@ def upload_dir(entries_dir, bucket_name, dry_run, force):
             "author_name": AUTHOR_NAME,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
+        if posted_at:
+            entry["posted_at"] = posted_at  # Discordでの実際の発言日時（JST）
 
         if dry_run:
             print(f"[DRY-RUN] {date}: {title} (entries/{date}.json としてアップロード予定)")

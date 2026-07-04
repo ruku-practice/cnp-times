@@ -144,6 +144,23 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${y}年${m}月${d}日(${WD[w]})`;
   }
 
+  // 記事ヘッダーの日時表示: Discordでの実際の発言日時（posted_at）があればそれを、
+  // 無ければ掲載日ラベルを表示する
+  function postedLabel(entry) {
+    if (entry.posted_at) {
+      const d = new Date(entry.posted_at);
+      if (!isNaN(d)) {
+        const WD = ['日', '月', '火', '水', '木', '金', '土'];
+        // posted_atはJST（+09:00）のISO文字列。JSTの暦で表示する
+        const jst = new Date(d.getTime() + (9 * 60 + d.getTimezoneOffset()) * 60000);
+        const hh = String(jst.getHours()).padStart(2, '0');
+        const mm = String(jst.getMinutes()).padStart(2, '0');
+        return `${jst.getFullYear()}年${jst.getMonth() + 1}月${jst.getDate()}日(${WD[jst.getDay()]}) ${hh}:${mm} 投稿`;
+      }
+    }
+    return jpDateLabel(entry.date);
+  }
+
   const STATUS_MESSAGES = {
     no_role: 'NinjaDAOサーバーで「CNP Owner❤️」ロールが見つかりませんでした。',
     not_member: 'NinjaDAOサーバーのメンバーであることが確認できませんでした。',
@@ -406,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         contentEl.innerHTML = `
           <h3 class="cnp-exclusive-title">${escapeHtml(entry.title)}</h3>
-          <p class="cnp-exclusive-updated">${escapeHtml(jpDateLabel(entry.date))}｜最終更新: ${escapeHtml(new Date(entry.updated_at).toLocaleString('ja-JP'))} ${entry.author_name ? '（' + escapeHtml(entry.author_name) + '）' : ''}</p>
+          <p class="cnp-exclusive-updated">${escapeHtml(postedLabel(entry))}</p>
           <div class="cnp-entry-body">${renderMarkdown(entry.body_md)}</div>
         `;
         await hydrateAuthedImages(token, contentEl);

@@ -677,6 +677,8 @@ def build_entry(session, token, group, out_dir, dup_index=0, clean=False):
         "message_count": len(messages),
         "image_count": image_count,
         "anchor_message_id": anchor["id"],
+        # Discordでの実際の発言日時（JST）。サイトの記事ヘッダーに表示する
+        "posted_at": parse_created_at(anchor).astimezone(JST).isoformat(),
         "rule": group.get("rule"),
     }
 
@@ -763,8 +765,10 @@ def build_confirmation_report(entries, extra_warnings=None):
 
 def write_entry_file(entry, out_dir):
     path = os.path.join(out_dir, f"{entry['file_stem']}.md")
+    posted = entry.get("posted_at")
+    meta = f"<!-- posted_at: {posted} -->\n\n" if posted else ""
     with open(path, "w", encoding="utf-8") as f:
-        f.write(f"# {entry['title']}\n\n{entry['body_md']}\n")
+        f.write(f"# {entry['title']}\n\n{meta}{entry['body_md']}\n")
     return path
 
 

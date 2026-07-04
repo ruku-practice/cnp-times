@@ -485,6 +485,10 @@ def api_entries_put(date):
         "author_name": payload.get("name"),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
+    # Discordでの発言日時はWebエディタからの更新では失わないよう既存値を引き継ぐ
+    existing = _load_entry(date)
+    if existing and existing.get("posted_at"):
+        entry["posted_at"] = existing["posted_at"]
     get_storage().put_bytes(
         _entry_key(date), json.dumps(entry, ensure_ascii=False).encode("utf-8"), "application/json"
     )
