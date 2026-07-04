@@ -87,6 +87,16 @@ jobs:
           done
           echo "❌ 3回とも失敗しました"
           exit 1
+
+      # 最安リスト トップ10 の日次スナップショットをGCSへ（CNP Owner限定・非致命）
+      - name: Snapshot top-10 listings to GCS
+        if: steps.check.outputs.run == 'true'
+        continue-on-error: true
+        env:
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          PYTHONUNBUFFERED: "1"
+        run: python snapshot_listings.py || echo "listings snapshot failed (non-fatal)"
+
       - name: Commit & push updated data
         if: steps.check.outputs.run == 'true'
         run: |

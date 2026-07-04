@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # get_CNP_stats_integrated_json.py の依存
-RUN pip install --no-cache-dir playwright python-dotenv yfinance gspread google-auth
+RUN pip install --no-cache-dir playwright python-dotenv yfinance gspread google-auth google-cloud-storage
 # Chromium 本体＋OS依存（GitHub Actions と同じ手順）
 RUN playwright install --with-deps chromium
 

@@ -42,6 +42,11 @@ for a in 1 2 3; do
 done
 [ "$ok" -eq 1 ] || { echo "❌ 3回とも失敗"; exit 1; }
 
+# --- 最安リスト トップ10 の日次スナップショットをGCSへ（CNP Owner限定・非致命） ---
+# 失敗しても日次データ更新は止めない（|| true）。GOOGLE_CREDENTIALS_JSON でGCSへ書き込む。
+echo "----- 最安リスト トップ10 スナップショット -----"
+python3 snapshot_listings.py || echo "⚠ listings スナップショット失敗（非致命・スキップ）"
+
 # --- Web用データを main へ push（Pagesはmainルート配信） ---
 git add html2_data.json floorprice_data.json data/ snapshots/ 2>/dev/null || true
 if git diff --staged --quiet; then
