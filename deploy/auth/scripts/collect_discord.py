@@ -582,17 +582,28 @@ def _first_non_empty_line(text):
 
 
 URL_ONLY_RE = re.compile(r"^https?://\S+$")
+HEADLINE_RE = re.compile(r"【([^】]+)】")
 
 
 def _pick_title_line(text):
-    """タイトルに使う行を選ぶ。URLだけの行はスキップして最初の意味のある行を返す。
+    """記事全文からタイトルに使う行を選ぶ。優先順位:
 
-    （旧サーバーの投稿は1行目がツイートURLのことがあり、そのままだと
-    サイトの日付セレクタにURLが表示されてしまうため）
-    全行がURL・空行なら最初の非空行にフォールバック。
+    1. 「分析N回目」を含む行（新サーバー形式。例: 相場分析【分析1502回目 …】）
+    2. 【...】見出しを含む最初の行（旧サーバー形式。装飾ダッシュは除いて中身を使う）
+    3. URLだけの行を除いた最初の非空行
+       （ひろゆきさんはツイートURL→データの順で投稿する習慣があり、
+        1行目URLをそのままタイトルにするとサイトの日付セレクタにURLが並ぶため）
+    4. 全行がURL・空行なら最初の非空行にフォールバック
     """
-    for line in (text or "").splitlines():
-        stripped = line.strip()
+    lines = [ln.strip() for ln in (text or "").splitlines()]
+    for stripped in lines:
+        if stripped and ANCHOR_RE.search(stripped):
+            return stripped
+    for stripped in lines:
+        m = HEADLINE_RE.search(stripped) if stripped else None
+        if m:
+            return m.group(1).strip()
+    for stripped in lines:
         if stripped and not URL_ONLY_RE.match(stripped):
             return stripped
     return _first_non_empty_line(text)
@@ -614,18 +625,17 @@ def build_entry(session, token, group, out_dir, dup_index=0, clean=False):
     anchor_content = anchor.get("content") or ""
     if clean:
         anchor_content = clean_content(anchor_content)
-    anchor_lines = anchor_content.splitlines()
-    title = _pick_title_line(anchor_content) or (
+    # タイトルは記事の全メッセージから選ぶ（アンカーがURLだけの投稿でも、
+    # 後続の見出し【...】等を拾えるように）。本文からは削除しない（日付ヘッダー等が
+    # データブロックから欠けないよう、原文を忠実に残す）
+    _all_text = "\n".join(
+        clean_content(m.get("content") or "") if clean else (m.get("content") or "")
+        for m in messages
+    )
+    title = _pick_title_line(_all_text) or (
         f"分析{group['number']}回目" if group["number"] is not None else "（無題）"
     )
-    # 本文: タイトルに採用した行だけを取り除く（URL行がタイトルをスキップした場合、
-    # URL自体は本文に残す）
-    body_lines = list(anchor_lines)
-    for _i, _line in enumerate(body_lines):
-        if _line.strip() == title:
-            del body_lines[_i]
-            break
-    anchor_rest = "\n".join(body_lines).strip("\n")
+    anchor_rest = anchor_content.strip("\n")
 
     images_dir = os.path.join(out_dir, "images")
     os.makedirs(images_dir, exist_ok=True)
