@@ -24,3 +24,6 @@ deploy/auth/content/
 
 # Discord認証CMS: 限定コンテンツの原稿（公開リポジトリに入れない）
 deploy/auth/scripts/past_entries/
+
+# Discord収集の下書き（限定コンテンツ・公開リポジトリに入れない）
+drafts_*/

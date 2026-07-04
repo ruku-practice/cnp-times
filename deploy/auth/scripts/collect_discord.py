@@ -111,13 +111,28 @@ def fetch_messages_page(session, token, channel_id, before=None, after=None):
     if after:
         params["after"] = after
 
+    net_retries = 0
     while True:
-        resp = session.get(
-            f"{DISCORD_API_BASE}/channels/{channel_id}/messages",
-            headers=_headers(token),
-            params=params,
-            timeout=30,
-        )
+        # 長時間のページング中は一時的なタイムアウト・接続断が必ず起きうるので、
+        # ネットワーク例外は指数バックオフで最大5回リトライする
+        try:
+            resp = session.get(
+                f"{DISCORD_API_BASE}/channels/{channel_id}/messages",
+                headers=_headers(token),
+                params=params,
+                timeout=30,
+            )
+        except requests.RequestException as e:
+            net_retries += 1
+            if net_retries > 5:
+                raise DiscordAPIError(
+                    f"チャンネル {channel_id}: 通信エラーが5回連続で発生しました: {e}"
+                )
+            wait = 5 * net_retries
+            print(f"  [通信エラー] {type(e).__name__}。{wait}秒後に再試行します（{net_retries}/5）…", file=sys.stderr)
+            time.sleep(wait)
+            continue
+        net_retries = 0
 
         if resp.status_code == 429:
             retry_after = _retry_after_seconds(resp)
@@ -541,8 +556,18 @@ def is_image_attachment(attachment):
 
 def download_image(session, token, attachment, dest_path):
     url = attachment.get("url")
-    resp = session.get(url, headers=_headers(token), timeout=60)
-    resp.raise_for_status()
+    # 画像も通信エラーは3回までリトライ
+    for attempt in range(3):
+        try:
+            resp = session.get(url, headers=_headers(token), timeout=60)
+            resp.raise_for_status()
+            break
+        except requests.RequestException as e:
+            if attempt == 2:
+                raise
+            wait = 5 * (attempt + 1)
+            print(f"  [通信エラー] 画像取得 {type(e).__name__}。{wait}秒後に再試行…", file=sys.stderr)
+            time.sleep(wait)
     with open(dest_path, "wb") as f:
         f.write(resp.content)
 
@@ -554,6 +579,23 @@ def _first_non_empty_line(text):
         if stripped:
             return stripped
     return ""
+
+
+URL_ONLY_RE = re.compile(r"^https?://\S+$")
+
+
+def _pick_title_line(text):
+    """タイトルに使う行を選ぶ。URLだけの行はスキップして最初の意味のある行を返す。
+
+    （旧サーバーの投稿は1行目がツイートURLのことがあり、そのままだと
+    サイトの日付セレクタにURLが表示されてしまうため）
+    全行がURL・空行なら最初の非空行にフォールバック。
+    """
+    for line in (text or "").splitlines():
+        stripped = line.strip()
+        if stripped and not URL_ONLY_RE.match(stripped):
+            return stripped
+    return _first_non_empty_line(text)
 
 
 def build_entry(session, token, group, out_dir, dup_index=0, clean=False):
@@ -573,10 +615,17 @@ def build_entry(session, token, group, out_dir, dup_index=0, clean=False):
     if clean:
         anchor_content = clean_content(anchor_content)
     anchor_lines = anchor_content.splitlines()
-    title = _first_non_empty_line(anchor_content) or (
+    title = _pick_title_line(anchor_content) or (
         f"分析{group['number']}回目" if group["number"] is not None else "（無題）"
     )
-    anchor_rest = "\n".join(anchor_lines[1:]).strip("\n")
+    # 本文: タイトルに採用した行だけを取り除く（URL行がタイトルをスキップした場合、
+    # URL自体は本文に残す）
+    body_lines = list(anchor_lines)
+    for _i, _line in enumerate(body_lines):
+        if _line.strip() == title:
+            del body_lines[_i]
+            break
+    anchor_rest = "\n".join(body_lines).strip("\n")
 
     images_dir = os.path.join(out_dir, "images")
     os.makedirs(images_dir, exist_ok=True)
@@ -813,6 +862,10 @@ def main():
         help="アンカー判定を「この文字列を含む」に変更する（省略時は「分析N回目」パターン）"
     )
     parser.add_argument(
+        "--max-cluster", type=int, default=15,
+        help="ルールv2のクラスタ最大メッセージ数（デフォルト15。超過は打ち切り＋警告）"
+    )
+    parser.add_argument(
         "--max-follow", type=int, default=None,
         help="アンカーに連結する後続メッセージの最大数（0でアンカーのみ。省略時は既定上限9）"
     )
@@ -852,6 +905,9 @@ def main():
         except ValueError as e:
             print(f"[エラー] {e}", file=sys.stderr)
             sys.exit(1)
+
+    global RULE_V2_MAX_CLUSTER_MESSAGES
+    RULE_V2_MAX_CLUSTER_MESSAGES = args.max_cluster
 
     token = os.environ.get("DISCORD_BOT_TOKEN")
     if not token:
