@@ -1,0 +1,44 @@
+[
+ {
+  "date": "2026-07-04",
+  "time": "22:29",
+  "token": "20361",
+  "image": "https://data.cryptoninjapartners.com/new/images/makami/1681.png",
+  "character": "Makami",
+  "price_eth": 0.17,
+  "price_jpy": 48339,
+  "from": "0x5fBf3B09E106f2eB11De9efaf3544E25fF0A7d8d",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0xa169178ee990d668efd1dc8ae3542f3be16370d17d3f886802465e001287dcd0",
+  "from_cnp": 0,
+  "to_cnp": 99
+ },
+ {
+  "date": "2026-07-04",
+  "time": "00:57",
+  "token": "21968",
+  "image": "https://data.cryptoninjapartners.com/images/21968.png",
+  "character": "Leelee",
+  "price_eth": 0.204,
+  "price_jpy": 56940,
+  "from": "0x270778E700FF62850e3bC64F81164675b82032b2",
+  "to": "0xfe23B7AC4b333d7B9815Fa6f930AdD2A0b117795",
+  "tx": "0x533605d1410d0ec3d909b2e85d6bbc25ffcd597a1f0956f1e32d9616012ecb32",
+  "from_cnp": 10,
+  "to_cnp": 7
+ },
+ {
+  "date": "2026-07-04",
+  "time": "00:54",
+  "token": "20650",
+  "image": "https://data.cryptoninjapartners.com/towasetsuna/images/187.png",
+  "character": "Towa",
+  "price_eth": 0.194,
+  "price_jpy": 54149,
+  "from": "0x343469bd867AA84002E73923e6Ece43574abb151",
+  "to": "0x1A3326bf12589eE53b3f796c9D376EA3df60d459",
+  "tx": "0xb9bc2130375ee8f0ff501fe9272ca88c2bcaf5325410daee9bdad29d4f74781b",
+  "from_cnp": 10,
+  "to_cnp": 16
+ }
+]
