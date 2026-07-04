@@ -384,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentEl = viewerEl.querySelector('[data-cnp-entry-content]');
     const dates = entries.map((e) => e.date); // 日付降順
     let displayedDate = null;
+    let reqSeq = 0; // 連打時に古い取得結果が新しい表示を上書きしないための連番
 
     function updateNote(requestedIso, shownDate) {
       if (!requestedIso || requestedIso === shownDate) {
@@ -411,12 +412,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      displayedDate = target;
+      const myReq = ++reqSeq;
       updateNote(requestedIso, target);
       contentEl.innerHTML = `<p class="cnp-exclusive-msg">読み込み中...</p>`;
       try {
         await ensureMarkdownLibs().catch(() => {});
         const entry = await fetchEntry(token, target);
+        if (myReq !== reqSeq) return; // より新しい表示要求が来ている → この結果は破棄
         if (!entry) {
           contentEl.innerHTML = `<p class="cnp-exclusive-msg">記事が見つかりませんでした。</p>`;
           return;
@@ -426,8 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <p class="cnp-exclusive-updated">${escapeHtml(postedLabel(entry))}</p>
           <div class="cnp-entry-body">${renderMarkdown(entry.body_md)}</div>
         `;
+        displayedDate = target; // 表示が完了してから確定（失敗時は次の操作で再取得される）
         await hydrateAuthedImages(token, contentEl);
       } catch (err) {
+        if (myReq !== reqSeq) return;
         console.error('[member.js] 記事の取得に失敗しました:', err);
         contentEl.innerHTML = `<p class="cnp-exclusive-msg">${STATUS_MESSAGES.fetch_error}</p>`;
       }
@@ -447,6 +451,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('click', fire);
     });
+    // 保険: イベントを取りこぼす経路（プログラム的な値変更等）があっても追従できるよう、
+    // pickerの値の変化を定期監視する
+    let lastSeen = picker.value;
+    setInterval(() => {
+      if (picker.value && picker.value !== lastSeen) {
+        lastSeen = picker.value;
+        onDateChange(picker.value);
+      }
+    }, 700);
   }
 
   // pickerの初期値はデータ読込後にadvanced.jsが設定するため、値が入るまで待つ（最大15秒）
