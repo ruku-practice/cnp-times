@@ -11,7 +11,8 @@
   "to": "0xE545c0D41c622bCCCc8f103c0607D042A2242350",
   "tx": "0xbc35e277563e297157db8a000731b41bcb1d91ab659583f340c362afb497d152",
   "from_cnp": 86,
-  "to_cnp": 200
+  "to_cnp": 200,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-16",
@@ -25,6 +26,7 @@
   "to": "0xE545c0D41c622bCCCc8f103c0607D042A2242350",
   "tx": "0xc6366fd2bfbbb179b3c42ef33f34487dc7652f79806f568fa09e82dc59e5a90f",
   "from_cnp": 33,
-  "to_cnp": 200
+  "to_cnp": 200,
+  "currency": "ETH"
  }
 ]

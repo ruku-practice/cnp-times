@@ -11,7 +11,8 @@
   "to": "0x277b6c5F468Cf9aEadB27b21B4111D231F562F77",
   "tx": "0xb2c8686d20ebcd37d8669c8ac55558747e1c1dc87b0603222b974e1473f443e5",
   "from_cnp": 2,
-  "to_cnp": 1
+  "to_cnp": 1,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -25,7 +26,8 @@
   "to": "0x87481851f2cacfFF8763f49BFF57E7afe3Ab87dC",
   "tx": "0xc238e76c25f0542fe9340bf84c0d10c70aec9f7d3e5713d6a2761d13408ef9c7",
   "from_cnp": 7,
-  "to_cnp": 3
+  "to_cnp": 3,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -39,7 +41,8 @@
   "to": "0x894c9b2Ed4Ba79e9a75760fA4047e46D0a671d19",
   "tx": "0xf0093979c4f05571b924a6aeba7ea3268a7526f4af6c6249437fa62ec20df802",
   "from_cnp": 2,
-  "to_cnp": 2
+  "to_cnp": 2,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -53,7 +56,8 @@
   "to": "0x4e2fDf615C83ABeE1Be2464415416a8011DEab59",
   "tx": "0x30121dfafc031f2958c1d8762c717d6d370f9961643652d860c840fd80ac09d6",
   "from_cnp": 0,
-  "to_cnp": 23
+  "to_cnp": 23,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -67,7 +71,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x40d1468eb302d7919409f02879b7d02111d9387db8a33c21681bd8acc574e55b",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -81,7 +86,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x4219f5e871d70027ff1b3984f2a9e32793b3fc33507fd1d46e806901ac8a4f89",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -95,7 +101,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x24fdc5bbd9567c4db66ca50b59bc68433d7d3d1c91f2c9e7a69dc5df21c3a04b",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -109,7 +116,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x7ac1986ca4d7adfa0eaa129d93242f9d127336e8c31ed35a24d6881c2998d5e5",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -123,7 +131,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x1e5a76cd7b20cca3441f18b2a22b6cd50bb5fb3f266971e3537e2797a90e1666",
   "from_cnp": 0,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -137,7 +146,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0xa115f4dc24c1df6b5629d9646e6cc5f1ee76878474317d553415d1909540f210",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -151,7 +161,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x52d0154ff74a0cda6102d922c8dbe14ffa7ad011e5dcabdc5d286cdc461a07a7",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -165,7 +176,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0xbe20dc8c1d04caf6ca691fe735c5a573fd122e569b37cd1387e5db3508790183",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -179,7 +191,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x8bd62d18e1e8054c68244e98a8193d69f62696ca53502fa579efc315f60aa054",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -193,7 +206,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x14c819d0fc6c16f2fb3ee29d14884ff750d44f0ba6a624e4f4eb2024d0649818",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -207,7 +221,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0xf7d3181f4d3bb5e599ef770489400a00aedb996b8976db99369793648e5157ad",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -221,7 +236,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0xdfcc534e0de6ef67f382de5cf48cf3eea03425caf5c46143d77bccbf36df13de",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -235,7 +251,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x6a9d3c231b9a7ecebce1b6b0bf600fc809e7658fd4329ec688cc045719df9ba1",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -249,7 +266,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x460a9382a5d5a99572cc1d7ae295c964a03a8f093194e39369d202ce454c5f17",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -263,7 +281,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x9affaf14d3cd070dbbf918de9fcb7b458e8831b3c88fd874385cea8d97530aef",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -277,7 +296,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x16fc4d68a5a37db3b419a4854309d0512efcf036c66ac2f3382a0a63c6b5e2e2",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -291,7 +311,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x953dbbd71bd2dd06e2699bd550696d70cd399b0516b55eb4a667ffe4cbd10910",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -305,7 +326,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0x872e7a1aff795d0ef6f981a2ce1d0aae2341b3e2eb01c0a3631748aa93d467d5",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -319,7 +341,8 @@
   "to": "0x91BaA5D55fB5c406516B01Cd62951625ebF0b3eB",
   "tx": "0xc144ea5fb5f6b293f7356f43e844765c7a38bf2086de5288f3d85ef0c3e556fd",
   "from_cnp": 10,
-  "to_cnp": 647
+  "to_cnp": 647,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -333,7 +356,8 @@
   "to": "0xbF1bf7Af7c21033d483c88409dbF3043e7509Cb7",
   "tx": "0x58498c12e439e41faf1aaa38fe393b78a0de2aadd9b1163f8958a1c61d4a285e",
   "from_cnp": 1,
-  "to_cnp": 13
+  "to_cnp": 13,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -347,7 +371,8 @@
   "to": "0x3f84e6FfF3BA02e355b02C16e5Dc7F0D796D97ac",
   "tx": "0xb7977d04bd24e81f6dec70a4d097d05c9d028e0a3187be38de935ab8886cf891",
   "from_cnp": 4,
-  "to_cnp": 12
+  "to_cnp": 12,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -361,7 +386,8 @@
   "to": "0xf15b2D971B9b320d931B5264Df47af3B4DB82981",
   "tx": "0x3e2334aa501328daa4e63bb22817ad216bc8b298834e174e2871ace7b95b4e99",
   "from_cnp": 24,
-  "to_cnp": 13
+  "to_cnp": 13,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -375,7 +401,8 @@
   "to": "0x79F29D23C77a6A6ff087f6448D54f370f7a199f2",
   "tx": "0xd9bc64d12990c17fa84b6113e825d5c00c1efd8ff3daa05d30e76f2936eb8faa",
   "from_cnp": 17,
-  "to_cnp": 8
+  "to_cnp": 8,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -389,7 +416,8 @@
   "to": "0x79F29D23C77a6A6ff087f6448D54f370f7a199f2",
   "tx": "0x475077a927cad3c595ef6f866f5452415b30e2bf5eea965d2a5e2233e7af646f",
   "from_cnp": 20,
-  "to_cnp": 8
+  "to_cnp": 8,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -403,7 +431,8 @@
   "to": "0x79F29D23C77a6A6ff087f6448D54f370f7a199f2",
   "tx": "0x00c57e151e56556b6773ee9f2ba02124d971fd777dc87a0a7a2456c2290660f4",
   "from_cnp": 50,
-  "to_cnp": 8
+  "to_cnp": 8,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -417,7 +446,8 @@
   "to": "0xCE520181607D93aFB34e7AeC6Cf8EA766C4581Ce",
   "tx": "0xb3a3e6f55ddaf058e69224f788e550f9584a8095bf21b978961bb89089aec404",
   "from_cnp": 14,
-  "to_cnp": 1
+  "to_cnp": 1,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -431,7 +461,8 @@
   "to": "0x93823Eb9CB2209f867Fae47f2cd7b392E49FBaa0",
   "tx": "0xbbcc4831215a58c6096071f90f4077ce1a2e5f1c3b8e867c330401f02f6bc653",
   "from_cnp": 10,
-  "to_cnp": 2
+  "to_cnp": 2,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-10",
@@ -445,6 +476,7 @@
   "to": "0xEFFa0B6B2Ed1A91c14c281F23eAbc4e2d7Ff6FCf",
   "tx": "0x8aa82b98117f41376925745662590e854f0edffd872a619f66a38a17ec240f28",
   "from_cnp": 4,
-  "to_cnp": 0
+  "to_cnp": 0,
+  "currency": "ETH"
  }
 ]

@@ -11,7 +11,8 @@
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
   "tx": "0x6bd50853e2ec5f3b824e8e7589e608ed7dc9eee264f57dd42ce60e09134d2dd9",
   "from_cnp": 58,
-  "to_cnp": 97
+  "to_cnp": 97,
+  "currency": "WETH"
  },
  {
   "date": "2026-05-24",
@@ -25,7 +26,8 @@
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
   "tx": "0xf305ee33539822cafa0b846763324044648b202195a732706ba44626a66c636a",
   "from_cnp": 58,
-  "to_cnp": 97
+  "to_cnp": 97,
+  "currency": "WETH"
  },
  {
   "date": "2026-05-24",
@@ -39,7 +41,8 @@
   "to": "0xE15062B178E1FBA0e72406b9BD9A65bb1644f212",
   "tx": "0x41f1ae7077a9736a157074677df5c8fda33eb770f17207996e5e816948ef7cd1",
   "from_cnp": 58,
-  "to_cnp": 72
+  "to_cnp": 72,
+  "currency": "WETH"
  },
  {
   "date": "2026-05-24",
@@ -53,6 +56,7 @@
   "to": "0xE15062B178E1FBA0e72406b9BD9A65bb1644f212",
   "tx": "0x484cbb1faf4bf0abce32f89c1ac6010e0c185451d44eed6927421f885ec8745d",
   "from_cnp": 58,
-  "to_cnp": 72
+  "to_cnp": 72,
+  "currency": "WETH"
  }
 ]

@@ -11,6 +11,7 @@
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
   "tx": "0x612f54cc1fdd5e3ad4a5169cc7b94684f7ef8f60bffe3d2add07694f0a8d4d40",
   "from_cnp": 41,
-  "to_cnp": 97
+  "to_cnp": 97,
+  "currency": "WETH"
  }
 ]

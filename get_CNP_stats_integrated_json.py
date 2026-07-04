@@ -620,10 +620,11 @@ class CNPStatsIntegrated:
                         existing = []
                 seen = {(e.get('tx'), e.get('token')) for e in existing}
                 new_items = [s for s in items if (s.get('tx'), s.get('token')) not in seen]
-                # 新規セールスには取得時点の送信元/受信先CNP保有数を焼き込む（以後固定・過去は更新しない）
+                # 新規セールスには取得時点の送信元/受信先CNP保有数と決済通貨を焼き込む（以後固定・過去は更新しない）
                 for s in new_items:
                     s['from_cnp'] = _bal(s.get('from'))
                     s['to_cnp'] = _bal(s.get('to'))
+                    s['currency'] = self._sale_currency(s.get('tx'), s.get('from')) or 'ETH'
                 merged = existing + new_items
                 merged.sort(key=lambda x: x.get('time', ''), reverse=True)
                 with open(path, "w", encoding="utf-8") as f:
@@ -695,6 +696,41 @@ class CNPStatsIntegrated:
                 res = r.get("result")
                 if res and res != "0x":
                     return int(res, 16)
+            except Exception:
+                continue
+        return None
+
+    def _sale_currency(self, tx, seller):
+        """売買のtxをオンチェーンで確認し、決済通貨を "WETH" か "ETH" で返す。
+        コレクションオファー等の受諾はWETH決済（売り手宛のWETH Transferログが残る）、
+        通常のBuyNowはネイティブETH決済（WETHログ無し）で判別する。
+        判定できない場合は None（呼び出し側でETH扱い/未設定にする）。
+        """
+        import urllib.request
+        import json as _json
+        if not tx or not seller:
+            return None
+        WETH = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+        TRANSFER = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+        seller_topic = "0x000000000000000000000000" + seller[2:].lower()
+        payload = {"jsonrpc": "2.0", "id": 1, "method": "eth_getTransactionReceipt",
+                   "params": [tx]}
+        for rpc in ("https://ethereum-rpc.publicnode.com", "https://1rpc.io/eth"):
+            try:
+                req = urllib.request.Request(
+                    rpc, data=_json.dumps(payload).encode(),
+                    headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
+                r = _json.loads(urllib.request.urlopen(req, timeout=12).read())
+                rcpt = r.get("result")
+                if not rcpt:
+                    continue
+                for log in rcpt.get("logs", []):
+                    topics = log.get("topics") or []
+                    if (log.get("address", "").lower() == WETH and topics
+                            and topics[0].lower() == TRANSFER and len(topics) >= 3
+                            and topics[2].lower() == seller_topic):
+                        return "WETH"
+                return "ETH"
             except Exception:
                 continue
         return None

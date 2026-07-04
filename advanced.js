@@ -399,7 +399,7 @@
           `<span class="sale-tok">#${s.token || '?'}</span></a>` +
           `<div class="sale-main">` +
           `<div class="sale-top"><span class="sale-char">${s.character || ''}</span><span class="sale-time">${s.time || ''}</span></div>` +
-          `<div class="sale-price">${eth(s.price_eth, s.price_eth < 1 ? 3 : 2)} <span class="unit">ETH</span>${jpy ? `<small>${jpy}</small>` : ''}</div>` +
+          `<div class="sale-price">${eth(s.price_eth, s.price_eth < 1 ? 3 : 2)} <span class="unit">${s.currency === 'WETH' ? 'WETH' : 'ETH'}</span>${jpy ? `<small>${jpy}</small>` : ''}</div>` +
           `<div class="sale-addr">` +
           walletHtml(s.from, '送信元') +
           cnpBadge(s.from, '送信元', s.from_cnp) +

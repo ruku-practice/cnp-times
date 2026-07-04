@@ -11,7 +11,8 @@
   "to": "0xD066e36a6423DFaAc24A26aFf56F5BF5860FE0B6",
   "tx": "0x1b0c6bc59d6ed91e114bf687ee4dfb9ee5a95bcf87c664b37fe11a629bc461f1",
   "from_cnp": 3,
-  "to_cnp": 1
+  "to_cnp": 1,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-07",
@@ -25,7 +26,8 @@
   "to": "0xbd5e2586b14f238eB364A6E729fa8358ed57Bb08",
   "tx": "0x7dfd5a181f6b1400c2680fa62457e503928601bd25b4c15730e992ec124d21e4",
   "from_cnp": 10,
-  "to_cnp": 1
+  "to_cnp": 1,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-07",
@@ -39,7 +41,8 @@
   "to": "0x33adecB925108610a27d8DBc2cEF68E93c0bfD5F",
   "tx": "0xb366b52e4056f7c118762e4c9dfa4b2bef292d50a62977a62e4c1e86fd74ecff",
   "from_cnp": 8,
-  "to_cnp": 1
+  "to_cnp": 1,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-07",
@@ -53,7 +56,8 @@
   "to": "0x35Fd8F95576b32f18927c6475706E8e7906DddEc",
   "tx": "0x24a77415ad64c2dc4c0799626ee974f59cc7fc0c84392d2ac294090f3d62fa3b",
   "from_cnp": 41,
-  "to_cnp": 10
+  "to_cnp": 10,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-07",
@@ -67,7 +71,8 @@
   "to": "0x2CFd84E65B17a901743A0080aa6be8A0808a0f21",
   "tx": "0x0e7b15817ff0e878fabda021a32fbef0fb3d450e0d8533967a7fe9533992cdd3",
   "from_cnp": 3,
-  "to_cnp": 1
+  "to_cnp": 1,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-07",
@@ -81,7 +86,8 @@
   "to": "0x7941f2432505fC9A27fA7f82e4917ccad0DEaF36",
   "tx": "0x77f1f398404c5334baedbe751bc6968b9f97b97b2ec5d5c6f22a06928c0a8df5",
   "from_cnp": 17,
-  "to_cnp": 1
+  "to_cnp": 1,
+  "currency": "ETH"
  },
  {
   "date": "2026-06-07",
@@ -95,7 +101,8 @@
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
   "tx": "0xf1998eea2bef971eca08fa8a906136d94504c8c2fc463d0ef887ec592f614538",
   "from_cnp": 41,
-  "to_cnp": 97
+  "to_cnp": 97,
+  "currency": "WETH"
  },
  {
   "date": "2026-06-07",
@@ -109,7 +116,8 @@
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
   "tx": "0x2fdd41d9df528c5b8cdf58c543509834b6bc79c8d831be718f5591893a52cdfb",
   "from_cnp": 41,
-  "to_cnp": 97
+  "to_cnp": 97,
+  "currency": "WETH"
  },
  {
   "date": "2026-06-07",
@@ -123,7 +131,8 @@
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
   "tx": "0xf4bebdb9693b306fba660a4a13ede0c99a2e413284c3ce143752202cfcd04d7d",
   "from_cnp": 41,
-  "to_cnp": 97
+  "to_cnp": 97,
+  "currency": "WETH"
  },
  {
   "date": "2026-06-07",
@@ -137,7 +146,8 @@
   "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
   "tx": "0xe10ef8cc34d251f358d1ac413d0e795080b565e70a38e2996fca14a8c62558dc",
   "from_cnp": 41,
-  "to_cnp": 97
+  "to_cnp": 97,
+  "currency": "WETH"
  },
  {
   "date": "2026-06-07",
@@ -151,7 +161,8 @@
   "to": "0xE15062B178E1FBA0e72406b9BD9A65bb1644f212",
   "tx": "0xa5bc2f8d23ac9166e8effbdfb4c4f09d4f6c1e71476f6cec4963a5eb7325da23",
   "from_cnp": 41,
-  "to_cnp": 72
+  "to_cnp": 72,
+  "currency": "WETH"
  },
  {
   "date": "2026-06-07",
@@ -165,6 +176,7 @@
   "to": "0xEFFa0B6B2Ed1A91c14c281F23eAbc4e2d7Ff6FCf",
   "tx": "0xf31978e3f5d3b943ac87d5b7c680babaef6e98f975a8d1d9abb448d2e11a2d82",
   "from_cnp": 4,
-  "to_cnp": 0
+  "to_cnp": 0,
+  "currency": "ETH"
  }
 ]

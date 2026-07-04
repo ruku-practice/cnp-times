@@ -11,6 +11,7 @@
   "to": "0xdba538633bF52B0cAe66c42991fC94C4FE6CbEeD",
   "tx": "0xfc58546178d678d6ff9c97107ff5556da9fa448bfbdc5c93aef676bfc2af184c",
   "from_cnp": 4,
-  "to_cnp": 0
+  "to_cnp": 0,
+  "currency": "ETH"
  }
 ]
