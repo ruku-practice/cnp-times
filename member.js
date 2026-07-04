@@ -524,9 +524,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const walletCell = walletUrl
       ? `<a href="${walletUrl}" target="_blank" rel="noopener">${escapeHtml(walletLabel(item))}</a>`
       : escapeHtml(walletLabel(item));
-    const scopeNote = item.wallet_listing_count_scope
-      ? `<span class="cnp-listings-scope-note">（上位${escapeHtml(String(item.wallet_listing_count_scope).replace('top', ''))}位以内で）</span>`
-      : '';
     const firstSeen = item.first_seen_date
       ? `${escapeHtml(jpDateLabel(item.first_seen_date))}${item.price_history && item.price_history[0] ? '　' + formatEth(item.price_history[0].price) + ' ETH' : ''}`
       : '-';
@@ -543,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td>${walletCell}</td>
         <td class="mono">
-          リスト ${item.wallet_listing_count != null ? item.wallet_listing_count : '-'}件${scopeNote}<br>
+          リスト ${item.wallet_listing_count != null ? item.wallet_listing_count : '-'}件<br>
           保有 ${item.wallet_cnp_total != null ? item.wallet_cnp_total : '-'}体
         </td>
         <td>${firstSeen}</td>
@@ -558,6 +555,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const rows = (snapshot.items || []).map(renderListingsRow).join('');
+    // リスト数の集計範囲（例 top40 → 上位40位以内）をヘッダに1回だけ注記する
+    const scopeItem = (snapshot.items || []).find((it) => it.wallet_listing_count_scope);
+    const scopeNote = scopeItem
+      ? `<br><span class="cnp-listings-scope-note">（リスト数は上位${escapeHtml(String(scopeItem.wallet_listing_count_scope).replace('top', ''))}位以内）</span>`
+      : '';
     bodyEl.innerHTML = `
       <p class="cnp-listings-summary">${escapeHtml(jpDateLabel(snapshot.date))} 時点（総リスト${escapeHtml(String(snapshot.total_listed != null ? snapshot.total_listed : '-'))}件）</p>
       <div class="cnp-listings-table-wrap">
@@ -567,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <th>画像/番号/キャラ</th>
               <th>価格</th>
               <th>ウォレット</th>
-              <th>リスト数・保有数</th>
+              <th>リスト数・保有数${scopeNote}</th>
               <th>最初のリスト</th>
               <th>価格履歴</th>
             </tr>
