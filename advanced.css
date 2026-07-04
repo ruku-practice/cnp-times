@@ -233,6 +233,25 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
 .cnp-exclusive-block h4 { font-size: 14px; font-weight: 700; margin: 0 0 4px; color: var(--text); }
 .cnp-exclusive-block p { margin: 0; color: var(--text); }
 
+/* CNP Owner限定: 最安リスト トップ10セクション本体 */
+.cnp-listings-section { margin-top: 16px; }
+.cnp-listings-section h2 {
+  display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700;
+  color: var(--text); margin-bottom: 10px;
+}
+.cnp-listings-section h2::before { content: ""; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
+.cnp-listings-body { font-size: 13px; line-height: 1.6; }
+.cnp-listings-summary { font-weight: 700; margin: 0 0 12px; color: var(--text); }
+.cnp-listings-table-wrap { overflow-x: auto; }
+table.cnp-listings-table { min-width: 720px; }
+table.cnp-listings-table th, table.cnp-listings-table td { vertical-align: middle; }
+.cnp-listings-nft .charcell img {
+  width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--surface-2);
+}
+.cnp-listings-nft .charcell { text-align: left; }
+.cnp-listings-jpy { color: var(--text-dim); font-size: 11.5px; }
+.cnp-listings-scope-note { color: var(--text-dim); font-size: 11px; }
+
 /* v2: 日次分析コメントCMS（日付セレクタ・記事表示・エディタ） */
 .cnp-editor-toggle-btn {
   border: none; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700;

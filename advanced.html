@@ -6,7 +6,7 @@
   <title>勝手にCNP TIMES — 高機能版</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="logo.png">
-  <link rel="stylesheet" href="advanced.css?v=2.2">
+  <link rel="stylesheet" href="advanced.css?v=2.3">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -108,13 +108,19 @@
         <div class="panel" id="travel-panel"></div>
         <div class="panel" id="sales-panel" style="margin-top:16px;"></div>
 
-        <!-- CNP Owner限定: 日次分析コメント（ニュースセクションより上に表示） -->
+        <div class="panel" id="news-panel" style="margin-top:16px;"></div>
+
+        <!-- CNP Owner限定: 最安リスト トップ10（日次スナップショット） -->
+        <div class="cnp-listings-section hidden" data-cnp-listings-section>
+          <h2>🔒 CNP Owner限定 最安リスト トップ10</h2>
+          <div class="panel cnp-listings-body" data-cnp-listings-body></div>
+        </div>
+
+        <!-- CNP Owner限定: 日次分析コメント（最安リストの直後に表示） -->
         <div class="cnp-exclusive-section hidden" data-cnp-exclusive-section>
           <h2>🔒 CNP Owner限定 日次分析コメント</h2>
           <div class="panel cnp-exclusive-body" data-cnp-body></div>
         </div>
-
-        <div class="panel" id="news-panel" style="margin-top:16px;"></div>
       </div>
 
     </div>
@@ -141,7 +147,7 @@
     </div>
   </div>
 
-  <script src="member.js?v=2.0"></script>
+  <script src="member.js?v=2.1"></script>
   <script src="advanced.js?v=1.17"></script>
 </body>
 </html>

@@ -18,6 +18,7 @@ CONTENT_DIR に一時ディレクトリを使うため、GCS（google-cloud-stor
 """
 
 import io
+import json
 import os
 import shutil
 import sys
@@ -726,6 +727,134 @@ class ApiImagesTests(unittest.TestCase):
             f"/api/images/{fake_uuid}.png", headers=self._auth(editor_token)
         )
         self.assertEqual(resp.status_code, 404)
+
+
+class ApiListingsTests(unittest.TestCase):
+    """/api/listings 系（最安リスト トップ10 スナップショット）のアクセス制御・取得。
+
+    スナップショット自体は snapshot_listings.py が生成するため、このAPIはGETのみ。
+    テストではストレージに直接JSONを書き込んでスナップショットが存在する状態を再現する。
+    """
+
+    def setUp(self):
+        app_module.app.testing = True
+        self.client = app_module.app.test_client()
+        app_module.reset_storage_cache()
+        _cleanup_content_dir()
+
+    def tearDown(self):
+        app_module.reset_storage_cache()
+        _cleanup_content_dir()
+
+    def _owner_token(self):
+        return app_module._issue_session_jwt("owner-1", "オーナー太郎", True, [REQUIRED_ROLE_ID])
+
+    def _editor_token(self):
+        return app_module._issue_session_jwt("editor-1", "分析者", False, [], editor=True)
+
+    def _non_owner_token(self):
+        return app_module._issue_session_jwt("456", "非オーナー", False, [OTHER_ROLE_ID])
+
+    def _auth(self, token):
+        return {"Authorization": f"Bearer {token}"}
+
+    def _put_snapshot(self, date, payload=None):
+        payload = payload or {
+            "date": date,
+            "generated_at": "2026-07-02T00:02:00+09:00",
+            "eth_jpy": 285000,
+            "total_listed": 163,
+            "items": [
+                {
+                    "rank": 1,
+                    "token": "22856",
+                    "character": "Luna",
+                    "image": "https://data.cryptoninjapartners.com/images/22856.png",
+                    "price_eth": 0.2,
+                    "price_jpy": 57000,
+                    "wallet": "0xabc",
+                    "wallet_name": "aofutaba",
+                    "wallet_listing_count": 3,
+                    "wallet_cnp_total": 99,
+                    "first_seen_date": "2026-06-29",
+                    "price_history": [
+                        {"date": "2026-06-29", "price": 0.22},
+                        {"date": date, "price": 0.2},
+                    ],
+                }
+            ],
+        }
+        app_module.get_storage().put_bytes(
+            f"listings/{date}.json",
+            json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            "application/json",
+        )
+        return payload
+
+    # owner/editor どちらも一覧・個別取得ができる
+    def test_owner_and_editor_can_list_and_get(self):
+        self._put_snapshot("2026-07-01")
+        self._put_snapshot("2026-07-02")
+
+        for token in (self._owner_token(), self._editor_token()):
+            list_resp = self.client.get("/api/listings", headers=self._auth(token))
+            self.assertEqual(list_resp.status_code, 200)
+            dates = [row["date"] for row in list_resp.get_json()]
+            self.assertEqual(dates, ["2026-07-02", "2026-07-01"])
+
+            get_resp = self.client.get(
+                "/api/listings/2026-07-01", headers=self._auth(token)
+            )
+            self.assertEqual(get_resp.status_code, 200)
+            body = get_resp.get_json()
+            self.assertEqual(body["date"], "2026-07-01")
+            self.assertEqual(body["items"][0]["token"], "22856")
+
+    # 非owner非editorは403
+    def test_non_owner_non_editor_forbidden(self):
+        self._put_snapshot("2026-07-01")
+        token = self._non_owner_token()
+
+        list_resp = self.client.get("/api/listings", headers=self._auth(token))
+        self.assertEqual(list_resp.status_code, 403)
+
+        get_resp = self.client.get("/api/listings/2026-07-01", headers=self._auth(token))
+        self.assertEqual(get_resp.status_code, 403)
+
+    # 無トークンは401
+    def test_listings_without_token_returns_401(self):
+        resp = self.client.get("/api/listings")
+        self.assertEqual(resp.status_code, 401)
+
+        resp2 = self.client.get("/api/listings/2026-07-01")
+        self.assertEqual(resp2.status_code, 401)
+
+    # 未生成日は404
+    def test_get_nonexistent_listing_returns_404(self):
+        token = self._owner_token()
+        resp = self.client.get("/api/listings/2099-01-01", headers=self._auth(token))
+        self.assertEqual(resp.status_code, 404)
+
+    # 不正な日付形式は400
+    def test_invalid_date_format_returns_400(self):
+        token = self._owner_token()
+        for bad_date in ["2026-7-1", "20260701", "not-a-date"]:
+            resp = self.client.get(f"/api/listings/{bad_date}", headers=self._auth(token))
+            self.assertEqual(resp.status_code, 400, f"date={bad_date}")
+
+        for traversal_date in ["2026-07-01/../secret", "../../etc/passwd"]:
+            resp = self.client.get(
+                f"/api/listings/{traversal_date}", headers=self._auth(token)
+            )
+            self.assertIn(resp.status_code, (400, 404, 405), f"date={traversal_date}")
+            self.assertNotEqual(resp.status_code, 200, f"date={traversal_date}")
+
+    # 空一覧の場合は空配列
+    def test_empty_listings_returns_empty_array(self):
+        token = self._owner_token()
+        resp = self.client.get("/api/listings", headers=self._auth(token))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.get_json(), [])
 
 
 if __name__ == "__main__":

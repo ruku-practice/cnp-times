@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const authHeader = document.querySelector('[data-cnp-auth-header]');
   const section = document.querySelector('[data-cnp-exclusive-section]');
-  if (!authHeader && !section) return;
+  const listingsSection = document.querySelector('[data-cnp-listings-section]');
+  if (!authHeader && !section && !listingsSection) return;
 
   // --- 表示モード切替（editor限定・あくまで表示のシミュレーション） --------------
   // JWTやAPI権限はそのまま。描画時に使う owner/editor フラグだけをモードで上書きする。
@@ -216,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(VIEW_MODE_KEY);
     if (section) section.classList.add('hidden');
+    if (listingsSection) listingsSection.classList.add('hidden');
     renderHeaderLoggedOut();
   }
 
@@ -254,6 +256,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (resp.status === 404) return null;
     if (!resp.ok) throw new Error('api/entries/' + date + ' failed: ' + resp.status);
+    return resp.json();
+  }
+
+  // 最安リスト トップ10 スナップショット（日付ごと・GETのみ）
+  async function fetchListing(token, date) {
+    const resp = await fetch(AUTH_BASE_URL + '/api/listings/' + encodeURIComponent(date), {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (resp.status === 404) return null;
+    if (!resp.ok) throw new Error('api/listings/' + date + ' failed: ' + resp.status);
     return resp.json();
   }
 
@@ -469,6 +481,140 @@ document.addEventListener('DOMContentLoaded', () => {
       if (picker && picker.value) { clearInterval(t); cb(picker.value); }
       else if (tries > 50 || !picker) { clearInterval(t); cb(null); } // 諦めて最新記事を表示
     }, 300);
+  }
+
+  // --- 最安リスト トップ10（CNP Owner限定・日次スナップショット）の描画 ------------
+  // 分析コメントと同様、独自プルダウンは持たず #date-picker と連動する。取得結果は
+  // 日付ごとにキャッシュし、選択日に無ければ「この日のリスト記録はありません」と表示する。
+
+  function formatEth(v) {
+    if (v == null) return '-';
+    return String(v);
+  }
+
+  function formatJpy(v) {
+    if (v == null) return '-';
+    return '¥' + Number(v).toLocaleString('ja-JP');
+  }
+
+  function walletLabel(item) {
+    // ニックネームはOpenSeaから取得しない方針のため、短縮アドレスで表示する
+    if (!item.wallet) return '不明';
+    return short_addr_js(item.wallet);
+  }
+
+  function short_addr_js(addr) {
+    if (!addr || addr.length < 10) return addr || '';
+    return addr.slice(0, 6) + '…' + addr.slice(-4);
+  }
+
+  function priceHistoryLabel(history) {
+    if (!Array.isArray(history) || history.length < 2) return '-';
+    return history.map((h) => formatEth(h.price)).join('→');
+  }
+
+  function renderListingsRow(item) {
+    const walletUrl = item.wallet ? `https://opensea.io/ja/${encodeURIComponent(item.wallet)}` : null;
+    const walletCell = walletUrl
+      ? `<a href="${walletUrl}" target="_blank" rel="noopener">${escapeHtml(walletLabel(item))}</a>`
+      : escapeHtml(walletLabel(item));
+    const scopeNote = item.wallet_listing_count_scope
+      ? `<span class="cnp-listings-scope-note">（上位${escapeHtml(String(item.wallet_listing_count_scope).replace('top', ''))}位以内で）</span>`
+      : '';
+    const firstSeen = item.first_seen_date
+      ? `${escapeHtml(jpDateLabel(item.first_seen_date))}${item.price_history && item.price_history[0] ? '　' + formatEth(item.price_history[0].price) + ' ETH' : ''}`
+      : '-';
+    return `
+      <tr>
+        <td class="cnp-listings-nft">
+          <div class="charcell">
+            <img src="${escapeHtml(item.image || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span>#${escapeHtml(item.token)}${item.character ? '　' + escapeHtml(item.character) : ''}</span>
+          </div>
+        </td>
+        <td class="mono">
+          ${formatEth(item.price_eth)} ETH<br><span class="cnp-listings-jpy">${formatJpy(item.price_jpy)}</span>
+        </td>
+        <td>${walletCell}</td>
+        <td class="mono">
+          リスト ${item.wallet_listing_count != null ? item.wallet_listing_count : '-'}件${scopeNote}<br>
+          保有 ${item.wallet_cnp_total != null ? item.wallet_cnp_total : '-'}体
+        </td>
+        <td>${firstSeen}</td>
+        <td class="mono">${escapeHtml(priceHistoryLabel(item.price_history))}</td>
+      </tr>
+    `;
+  }
+
+  function renderListingsSnapshot(bodyEl, snapshot, requestedIso) {
+    if (!snapshot) {
+      bodyEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(requestedIso))} のリスト記録はありません。</p>`;
+      return;
+    }
+    const rows = (snapshot.items || []).map(renderListingsRow).join('');
+    bodyEl.innerHTML = `
+      <p class="cnp-listings-summary">${escapeHtml(jpDateLabel(snapshot.date))} 時点（総リスト${escapeHtml(String(snapshot.total_listed != null ? snapshot.total_listed : '-'))}件）</p>
+      <div class="cnp-listings-table-wrap">
+        <table class="t cnp-listings-table">
+          <thead>
+            <tr>
+              <th>画像/番号/キャラ</th>
+              <th>価格</th>
+              <th>ウォレット</th>
+              <th>リスト数・保有数</th>
+              <th>最初のリスト</th>
+              <th>価格履歴</th>
+            </tr>
+          </thead>
+          <tbody>${rows || '<tr><td colspan="6" class="cnp-exclusive-msg">リストがありません。</td></tr>'}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderListingsViewer(bodyEl, token) {
+    const cache = {}; // date -> snapshot|null
+    let displayedDate = null;
+    let reqSeq = 0;
+
+    async function showForDate(requestedIso) {
+      if (!requestedIso || requestedIso === displayedDate) return;
+      const myReq = ++reqSeq;
+      bodyEl.innerHTML = `<p class="cnp-exclusive-msg">読み込み中...</p>`;
+      try {
+        const snapshot = Object.prototype.hasOwnProperty.call(cache, requestedIso)
+          ? cache[requestedIso]
+          : await fetchListing(token, requestedIso);
+        if (myReq !== reqSeq) return; // より新しい表示要求が来ている → 破棄
+        cache[requestedIso] = snapshot;
+        renderListingsSnapshot(bodyEl, snapshot, requestedIso);
+        displayedDate = requestedIso;
+      } catch (err) {
+        if (myReq !== reqSeq) return;
+        console.error('[member.js] 最安リストの取得に失敗しました:', err);
+        bodyEl.innerHTML = `<p class="cnp-exclusive-msg">${STATUS_MESSAGES.fetch_error}</p>`;
+      }
+    }
+
+    return { showForDate };
+  }
+
+  // 表示モード（owner/editor/none）に応じてセクションの表示可否を切り替え、
+  // 表示する場合は日付ナビに連動させる。呼び出しは限定コンテンツ全体の描画と合わせて行う。
+  function renderListings(token, me) {
+    if (!listingsSection) return;
+    if (!me.owner && !me.editor) {
+      listingsSection.classList.add('hidden');
+      return;
+    }
+    listingsSection.classList.remove('hidden');
+    const bodyEl = listingsSection.querySelector('[data-cnp-listings-body]');
+    if (!bodyEl) return;
+
+    const viewerApi = renderListingsViewer(bodyEl, token);
+    const applyDate = (iso) => { if (iso) viewerApi.showForDate(iso); };
+    hookDateNav(applyDate);
+    waitForPickerValue(applyDate);
   }
 
   // --- editor用フォームの描画 ---------------------------------------------------
@@ -761,6 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!token) {
       renderHeaderLoggedOut(lastStatus && STATUS_MESSAGES[lastStatus] ? STATUS_MESSAGES[lastStatus] : null);
       if (section) section.classList.add('hidden');
+      if (listingsSection) listingsSection.classList.add('hidden');
       return;
     }
 
@@ -770,6 +917,11 @@ document.addEventListener('DOMContentLoaded', () => {
       section.classList.remove('hidden');
       const body = section.querySelector('[data-cnp-body]');
       if (body) body.innerHTML = `<p class="cnp-exclusive-msg">読み込み中...</p>`;
+    }
+    if (listingsSection) {
+      listingsSection.classList.remove('hidden');
+      const lbody = listingsSection.querySelector('[data-cnp-listings-body]');
+      if (lbody) lbody.innerHTML = `<p class="cnp-exclusive-msg">読み込み中...</p>`;
     }
     fetchEntriesCached(token);
     ensureMarkdownLibs().catch(() => {});
@@ -781,6 +933,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem(TOKEN_KEY);
         renderHeaderLoggedOut();
         if (section) section.classList.add('hidden');
+        if (listingsSection) listingsSection.classList.add('hidden');
         return;
       }
 
@@ -790,6 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
       async function renderContentForMode(mode) {
         setViewMode(mode);
         const effectiveMe = applyViewMode(realMe, mode);
+        renderListings(token, effectiveMe);
         if (!effectiveMe.owner && !effectiveMe.editor) {
           if (section) section.classList.add('hidden');
           return;
@@ -807,6 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('[member.js] 限定コンテンツの取得に失敗しました:', err);
       renderHeaderLoggedOut(STATUS_MESSAGES.error);
       if (section) section.classList.add('hidden');
+      if (listingsSection) listingsSection.classList.add('hidden');
     }
   }
 
