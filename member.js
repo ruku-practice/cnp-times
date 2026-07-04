@@ -348,41 +348,65 @@ document.addEventListener('DOMContentLoaded', () => {
     return shellApi;
   }
 
+  // 閲覧ビュー: 独自のプルダウンは持たず、ページ上部の日付ナビ（#date-picker）と連動する。
+  // 選択日の記事が無い場合は、それより前で直近の記事をフォールバック表示する。
   function renderViewer(viewerEl, token, entries) {
     if (entries.length === 0) {
       viewerEl.innerHTML = `<p class="cnp-exclusive-msg">まだ記事がありません。分析者が記事を書くとここに表示されます。</p>`;
-      return;
+      return null;
     }
 
-    const options = entries
-      .map((e) => `<option value="${escapeHtml(e.date)}">${escapeHtml(jpDateLabel(e.date))} - ${escapeHtml(e.title)}</option>`)
-      .join('');
-
     viewerEl.innerHTML = `
-      <div class="cnp-date-selector">
-        <label for="cnp-entry-date-select">日付</label>
-        <select id="cnp-entry-date-select" data-cnp-date-select>${options}</select>
-      </div>
+      <p class="cnp-exclusive-msg cnp-sync-note hidden" data-cnp-sync-note></p>
       <div class="cnp-entry-content" data-cnp-entry-content>
         <p class="cnp-exclusive-msg">読み込み中...</p>
       </div>
     `;
 
-    const select = viewerEl.querySelector('[data-cnp-date-select]');
+    const noteEl = viewerEl.querySelector('[data-cnp-sync-note]');
     const contentEl = viewerEl.querySelector('[data-cnp-entry-content]');
+    const dates = entries.map((e) => e.date); // 日付降順
+    let displayedDate = null;
 
-    async function showEntry(date) {
+    function updateNote(requestedIso, shownDate) {
+      if (!requestedIso || requestedIso === shownDate) {
+        noteEl.classList.add('hidden');
+      } else {
+        noteEl.textContent = `${jpDateLabel(requestedIso)} の分析コメントはありません。直近の ${jpDateLabel(shownDate)} 分を表示しています。`;
+        noteEl.classList.remove('hidden');
+      }
+    }
+
+    async function showForDate(requestedIso) {
+      // 選択日と一致する記事、無ければそれより前で直近の記事（datesは降順）
+      const target = requestedIso
+        ? (dates.includes(requestedIso) ? requestedIso : dates.find((d) => d < requestedIso))
+        : dates[0];
+
+      if (!target) {
+        displayedDate = null;
+        noteEl.classList.add('hidden');
+        contentEl.innerHTML = `<p class="cnp-exclusive-msg">${escapeHtml(jpDateLabel(requestedIso))} 以前の分析コメントはありません。</p>`;
+        return;
+      }
+      if (target === displayedDate) {
+        updateNote(requestedIso, target); // 記事は同じ。案内文だけ更新
+        return;
+      }
+
+      displayedDate = target;
+      updateNote(requestedIso, target);
       contentEl.innerHTML = `<p class="cnp-exclusive-msg">読み込み中...</p>`;
       try {
         await ensureMarkdownLibs().catch(() => {});
-        const entry = await fetchEntry(token, date);
+        const entry = await fetchEntry(token, target);
         if (!entry) {
           contentEl.innerHTML = `<p class="cnp-exclusive-msg">記事が見つかりませんでした。</p>`;
           return;
         }
         contentEl.innerHTML = `
           <h3 class="cnp-exclusive-title">${escapeHtml(entry.title)}</h3>
-          <p class="cnp-exclusive-updated">最終更新: ${escapeHtml(new Date(entry.updated_at).toLocaleString('ja-JP'))} ${entry.author_name ? '（' + escapeHtml(entry.author_name) + '）' : ''}</p>
+          <p class="cnp-exclusive-updated">${escapeHtml(jpDateLabel(entry.date))}｜最終更新: ${escapeHtml(new Date(entry.updated_at).toLocaleString('ja-JP'))} ${entry.author_name ? '（' + escapeHtml(entry.author_name) + '）' : ''}</p>
           <div class="cnp-entry-body">${renderMarkdown(entry.body_md)}</div>
         `;
         await hydrateAuthedImages(token, contentEl);
@@ -392,11 +416,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    select.addEventListener('change', () => showEntry(select.value));
-    // 最新（先頭 = 日付降順の1件目）を初期表示
-    showEntry(entries[0].date);
+    return { showForDate, getDisplayedDate: () => displayedDate };
+  }
 
-    return { select, showEntry };
+  // ページ上部の日付ナビ（advanced.js の #date-picker と◀▶ボタン）に連動フックを張る。
+  // ボタンはプログラム的にpickerの値を変える（changeが飛ばない）ため、クリックにも反応する。
+  function hookDateNav(onDateChange) {
+    const picker = document.getElementById('date-picker');
+    if (!picker) return;
+    const fire = () => setTimeout(() => { if (picker.value) onDateChange(picker.value); }, 0);
+    picker.addEventListener('change', fire);
+    ['date-prev', 'date-next', 'date-latest'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', fire);
+    });
+  }
+
+  // pickerの初期値はデータ読込後にadvanced.jsが設定するため、値が入るまで待つ（最大15秒）
+  function waitForPickerValue(cb) {
+    const picker = document.getElementById('date-picker');
+    if (picker && picker.value) { cb(picker.value); return; }
+    let tries = 0;
+    const t = setInterval(() => {
+      tries += 1;
+      if (picker && picker.value) { clearInterval(t); cb(picker.value); }
+      else if (tries > 50 || !picker) { clearInterval(t); cb(null); } // 諦めて最新記事を表示
+    }, 300);
   }
 
   // --- editor用フォームの描画 ---------------------------------------------------
@@ -623,10 +668,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!shell) return;
     const { viewerEl, editorEl } = shell;
 
+    // 上部の日付ナビと連動するビューア。保存・削除後の再描画でもフックを張り直さないよう
+    // viewerApi を差し替える形にする
+    let viewerApi = null;
+    let currentIso = null; // 日付ナビで現在選ばれている日付
+
+    const applyDate = (iso) => {
+      currentIso = iso || currentIso;
+      if (viewerApi) viewerApi.showForDate(currentIso);
+    };
+
     async function reloadViewer() {
       try {
         const list = await fetchEntries(token);
-        renderViewer(viewerEl, token, list);
+        viewerApi = renderViewer(viewerEl, token, list);
+        if (viewerApi) viewerApi.showForDate(currentIso);
       } catch (err) {
         console.error('[member.js] 記事一覧の取得に失敗しました:', err);
         viewerEl.innerHTML = `<p class="cnp-exclusive-msg">${STATUS_MESSAGES.fetch_error}</p>`;
@@ -636,8 +692,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (entries === null) {
       viewerEl.innerHTML = `<p class="cnp-exclusive-msg">${STATUS_MESSAGES.fetch_error}</p>`;
     } else {
-      renderViewer(viewerEl, token, entries);
+      viewerApi = renderViewer(viewerEl, token, entries);
     }
+
+    hookDateNav(applyDate);
+    waitForPickerValue(applyDate);
 
     if (me.editor) {
       const editorApi = renderEditorForm(editorEl, token, {
@@ -646,10 +705,9 @@ document.addEventListener('DOMContentLoaded', () => {
         onDeleted: reloadViewer
       });
 
-      // フォームを開いたとき、閲覧側で選択中の記事を読み込む（「表示中の記事を編集する」体験にする）
+      // フォームを開いたとき、いま表示中の記事を読み込む（「表示中の記事を編集する」体験にする）
       shell.onOpen = () => {
-        const select = viewerEl.querySelector('[data-cnp-date-select]');
-        const current = select ? select.value : null;
+        const current = (viewerApi && viewerApi.getDisplayedDate()) || currentIso;
         if (current && current !== editorApi.dateInput.value) {
           editorApi.dateInput.value = current;
           editorApi.loadForDate(current);
