@@ -15,9 +15,13 @@ function setStatus(text, kind) {
   if (kind === 'ok') statusMsg.classList.add('cnp-status-ok');
 }
 
+const TEST_CONNECTION_TIMEOUT_MS = 20000;
+
 async function loadStoredKey() {
   const stored = await chrome.storage.local.get(API_KEY_STORAGE_KEY);
-  apiKeyInput.value = stored[API_KEY_STORAGE_KEY] || '';
+  const key = stored[API_KEY_STORAGE_KEY] || '';
+  apiKeyInput.value = key;
+  cnpLog('options.js 起動', { hasStoredKey: !!key, maskedKey: window.CnpLog.maskSecret(key) });
 }
 
 optionsForm.addEventListener('submit', async (event) => {
@@ -25,30 +29,42 @@ optionsForm.addEventListener('submit', async (event) => {
   const key = apiKeyInput.value.trim();
   if (!key) {
     setStatus('APIキーを入力してください。', 'error');
+    cnpLog('APIキー保存: 未入力のため中止');
     return;
   }
   await chrome.storage.local.set({ [API_KEY_STORAGE_KEY]: key });
   setStatus('保存しました。', 'ok');
+  cnpLog('APIキーを保存しました', { maskedKey: window.CnpLog.maskSecret(key) });
 });
 
 testBtn.addEventListener('click', async () => {
   const key = apiKeyInput.value.trim();
+  cnpLog('接続テストボタンが押されました', { maskedKey: window.CnpLog.maskSecret(key) });
   if (!key) {
     setStatus('APIキーを入力してください。', 'error');
+    cnpLog('接続テスト: APIキー未入力のため中止');
     return;
   }
+  // 押した瞬間に「確認中...」を出し、処理中はボタンをdisabledにして
+  // 「無反応に見える」状態を防ぐ（サーバー応答が遅い場合の見え方対策）。
   testBtn.disabled = true;
-  setStatus('接続確認中...', null);
+  setStatus('確認中...', null);
+  const startedAt = Date.now();
   try {
     const api = window.CnpApi.createApiClient(API_BASE_URL, () => key);
-    const count = await api.testConnection();
-    setStatus(`✅ 接続OK（${count}件の記事が見えています）`, 'ok');
+    const count = await api.testConnection({ timeoutMs: TEST_CONNECTION_TIMEOUT_MS });
+    const elapsedMs = Date.now() - startedAt;
+    setStatus(`✅ 接続OK（${count}件の記事）`, 'ok');
+    cnpLog('接続テスト成功', { count, elapsedMs });
   } catch (err) {
-    console.error('[cnp-post-extension] 接続テスト失敗:', err);
-    if (err.message === 'UNAUTHORIZED') {
-      setStatus('APIキーを確認してください（401 Unauthorized）。', 'error');
+    const elapsedMs = Date.now() - startedAt;
+    cnpLogError('接続テスト失敗', { elapsedMs, error: err && (err.message || String(err)) });
+    if (err && err.message === 'UNAUTHORIZED') {
+      setStatus('❌ 失敗: APIキーを確認してください（401 Unauthorized）。', 'error');
+    } else if (err && err.message === 'TIMEOUT') {
+      setStatus('❌ 失敗: 時間切れ。ネットワークかAPIキーを確認してください。', 'error');
     } else {
-      setStatus('通信エラーが発生しました。ネットワーク状態を確認してください。', 'error');
+      setStatus('❌ 失敗: 通信エラーが発生しました。ネットワーク状態を確認してください。', 'error');
     }
   } finally {
     testBtn.disabled = false;

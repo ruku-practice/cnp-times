@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CNP TIMES 投稿ツール",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "選択したテキストをCNP TIMESの詳細分析コメントとして投稿するための拡張機能",
   "permissions": ["contextMenus", "storage"],
   "host_permissions": [
