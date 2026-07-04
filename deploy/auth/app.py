@@ -465,6 +465,9 @@ def _entry_key(date):
     return f"entries/{date}.json"
 
 
+INDEX_KEY = "entries/_index.json"
+
+
 def _load_entry(date):
     data = get_storage().get_bytes(_entry_key(date))
     if data is None:
@@ -472,16 +475,42 @@ def _load_entry(date):
     return json.loads(data.decode("utf-8"))
 
 
-@app.route("/api/entries", methods=["GET"])
-def api_entries_list():
-    """owner または editor: entries/ 配下を列挙し日付降順で返す。"""
-    _, err = _require_viewer()
-    if err:
-        return err
+# --- 記事一覧の索引 ---------------------------------------------------------
+# 一覧APIで全記事(1000件超)を個別ダウンロードすると数十秒かかるため、
+# 一覧用のメタ情報だけを1ファイル entries/_index.json に持たせて高速化する。
+# 索引は {date: {title, updated_at, posted_at}} の辞書。PUT/DELETEで随時更新し、
+# 欠損時はフルスキャンで自己再構築する。
 
-    keys = get_storage().list("entries")
-    items = []
-    for key in keys:
+
+def _index_row(entry, date):
+    return {
+        "title": entry.get("title", ""),
+        "updated_at": entry.get("updated_at", ""),
+        "posted_at": entry.get("posted_at", ""),
+    }
+
+
+def _load_index():
+    data = get_storage().get_bytes(INDEX_KEY)
+    if data is None:
+        return None
+    try:
+        idx = json.loads(data.decode("utf-8"))
+        return idx if isinstance(idx, dict) else None
+    except (ValueError, UnicodeDecodeError):
+        return None
+
+
+def _save_index(idx):
+    get_storage().put_bytes(
+        INDEX_KEY, json.dumps(idx, ensure_ascii=False).encode("utf-8"), "application/json"
+    )
+
+
+def _rebuild_index():
+    """entries/ をフルスキャンして索引を再構築・保存する（欠損時のフォールバック）。"""
+    idx = {}
+    for key in get_storage().list("entries"):
         fname = key.rsplit("/", 1)[-1]
         if not fname.endswith(".json"):
             continue
@@ -489,16 +518,45 @@ def api_entries_list():
         if not DATE_RE.match(date):
             continue
         entry = _load_entry(date)
-        if entry is None:
-            continue
-        items.append(
-            {
-                "date": entry.get("date", date),
-                "title": entry.get("title", ""),
-                "updated_at": entry.get("updated_at", ""),
-            }
-        )
+        if entry is not None:
+            idx[date] = _index_row(entry, date)
+    _save_index(idx)
+    return idx
 
+
+def _update_index_entry(date, entry):
+    idx = _load_index()
+    if idx is None:
+        idx = _rebuild_index()
+    idx[date] = _index_row(entry, date)
+    _save_index(idx)
+
+
+def _remove_index_entry(date):
+    idx = _load_index()
+    if idx is None:
+        idx = _rebuild_index()
+    if date in idx:
+        del idx[date]
+        _save_index(idx)
+
+
+@app.route("/api/entries", methods=["GET"])
+def api_entries_list():
+    """owner または editor: 記事一覧を日付降順で返す（索引ファイル参照で高速）。"""
+    _, err = _require_viewer()
+    if err:
+        return err
+
+    idx = _load_index()
+    if idx is None:
+        idx = _rebuild_index()
+
+    items = [
+        {"date": date, "title": row.get("title", ""), "updated_at": row.get("updated_at", "")}
+        for date, row in idx.items()
+        if DATE_RE.match(date)
+    ]
     items.sort(key=lambda e: e["date"], reverse=True)
     return jsonify(items)
 
@@ -558,6 +616,7 @@ def api_entries_put(date):
     get_storage().put_bytes(
         _entry_key(date), json.dumps(entry, ensure_ascii=False).encode("utf-8"), "application/json"
     )
+    _update_index_entry(date, entry)
     return jsonify(entry)
 
 
@@ -574,6 +633,7 @@ def api_entries_delete(date):
     deleted = get_storage().delete(_entry_key(date))
     if not deleted:
         return jsonify({"error": "not found"}), 404
+    _remove_index_entry(date)
     return jsonify({"ok": True})
 
 
