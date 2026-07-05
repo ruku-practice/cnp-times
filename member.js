@@ -279,14 +279,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return resp.json();
   }
 
-  async function putEntry(token, date, title, bodyMd) {
+  // JSTの現在時刻を +09:00 付きISO文字列で返す（新規投稿のposted_at用）
+  function nowJstIso() {
+    const now = new Date();
+    const jst = new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
+    const p = (n) => String(n).padStart(2, '0');
+    return `${jst.getFullYear()}-${p(jst.getMonth() + 1)}-${p(jst.getDate())}T${p(jst.getHours())}:${p(jst.getMinutes())}:${p(jst.getSeconds())}+09:00`;
+  }
+
+  async function putEntry(token, date, title, bodyMd, isNew) {
+    const payload = { title, body_md: bodyMd, source: 'web' };
+    // 新規投稿時のみ、投稿日時（=Webエディタで登録した時刻）を付与する
+    if (isNew) payload.posted_at = nowJstIso();
     const resp = await fetch(AUTH_BASE_URL + '/api/entries/' + encodeURIComponent(date), {
       method: 'PUT',
       headers: {
         Authorization: 'Bearer ' + token,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ title, body_md: bodyMd })
+      body: JSON.stringify(payload)
     });
     if (!resp.ok) {
       const errBody = await resp.json().catch(() => ({}));
@@ -399,7 +410,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 閲覧ビュー: 独自のプルダウンは持たず、ページ上部の日付ナビ（#date-picker）と連動する。
   // 選択日の記事が無い場合は、それより前で直近の記事をフォールバック表示する。
-  function renderViewer(viewerEl, token, entries) {
+  // 投稿元バッジ（編集者にのみ表示）。source: extension/web/discord/api
+  const SOURCE_LABELS = {
+    extension: '🔌 Chrome拡張から投稿',
+    api: '🔌 API連携から投稿',
+    web: '✍️ Webエディタで編集',
+    discord: '🤖 Discordから自動取り込み'
+  };
+  function sourceBadge(entry, isEditor) {
+    if (!isEditor) return '';
+    const label = SOURCE_LABELS[entry.source] || '投稿元不明';
+    return `<span class="cnp-entry-source" title="この記事の投稿元（編集者のみ表示）">${escapeHtml(label)}</span>`;
+  }
+
+  function renderViewer(viewerEl, token, entries, isEditor) {
     if (entries.length === 0) {
       viewerEl.innerHTML = `<p class="cnp-exclusive-msg">まだ記事がありません。分析者が記事を書くとここに表示されます。</p>`;
       return null;
@@ -444,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
         entryCache[target] = entry;
         contentEl.innerHTML = `
           <h3 class="cnp-exclusive-title">${escapeHtml(entry.title)}</h3>
-          <p class="cnp-exclusive-updated">${escapeHtml(postedLabel(entry))}</p>
+          <p class="cnp-exclusive-updated">${escapeHtml(postedLabel(entry))}${sourceBadge(entry, isEditor)}</p>
           <div class="cnp-entry-body">${renderMarkdown(entry.body_md)}</div>
         `;
         displayedDate = target; // 表示が完了してから確定（失敗時は次の操作で再取得される）
@@ -691,6 +715,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 未保存の変更トラッキング（閉じる時の確認に使う）
     let dirty = false;
+    let entryExists = false; // 現在の日付に既存記事があるか（保存時の新規判定用）
     const markDirty = () => { dirty = true; };
     titleInput.addEventListener('input', markDirty);
     bodyTextarea.addEventListener('input', markDirty);
@@ -703,6 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
       statusEl.textContent = '';
       try {
         const entry = await fetchEntry(token, date);
+        entryExists = !!entry; // 新規/既存を保存時のsource・posted_at判定に使う
         if (entry) {
           titleInput.value = entry.title;
           bodyTextarea.value = entry.body_md;
@@ -798,7 +824,8 @@ document.addEventListener('DOMContentLoaded', () => {
       statusEl.textContent = '保存中...';
       saveBtns.forEach((b) => { b.disabled = true; });
       try {
-        await putEntry(token, date, title, bodyMd);
+        await putEntry(token, date, title, bodyMd, !entryExists);
+        entryExists = true;
         dirty = false;
         statusEl.textContent = '保存しました。';
         if (state.onSaved) await state.onSaved(date);
@@ -873,7 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function reloadViewer() {
       try {
         const list = await fetchEntriesCached(token, true); // 保存・削除後は取り直す
-        viewerApi = renderViewer(viewerEl, token, list);
+        viewerApi = renderViewer(viewerEl, token, list, me.editor);
         if (viewerApi) viewerApi.showForDate(currentIso);
       } catch (err) {
         console.error('[member.js] 記事一覧の取得に失敗しました:', err);
@@ -884,7 +911,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (entries === null) {
       viewerEl.innerHTML = `<p class="cnp-exclusive-msg">${STATUS_MESSAGES.fetch_error}</p>`;
     } else {
-      viewerApi = renderViewer(viewerEl, token, entries);
+      viewerApi = renderViewer(viewerEl, token, entries, me.editor);
     }
 
     hookDateNav(applyDate);

@@ -171,7 +171,7 @@ postForm.addEventListener('submit', async (event) => {
   try {
     // 新規記事の場合のみ posted_at（現在のJST時刻）を同梱する。
     // 既存記事があった場合はバックエンド側でposted_atが引き継がれ、上書きされない。
-    const payload = { title, body_md: bodyMd };
+    const payload = { title, body_md: bodyMd, source: 'extension' };
     const isNewEntry = !existingEntryCache;
     if (isNewEntry) {
       payload.posted_at = window.CnpPostLogic.nowJstIso();

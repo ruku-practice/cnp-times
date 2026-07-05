@@ -615,6 +615,9 @@ def api_entries_put(date):
         posted_at = body.get("posted_at")
         if _valid_posted_at(posted_at):
             entry["posted_at"] = posted_at.strip()
+    # 投稿元（拡張/Webエディタ等）。編集モードで判別できるよう最終保存元を記録する
+    src = body.get("source")
+    entry["source"] = src if src in ("extension", "web", "api", "discord") else "web"
     get_storage().put_bytes(
         _entry_key(date), json.dumps(entry, ensure_ascii=False).encode("utf-8"), "application/json"
     )
