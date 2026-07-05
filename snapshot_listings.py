@@ -231,8 +231,8 @@ def owner_of(token_id, memo=None):
     return owner
 
 
-def cnp_balance(address):
-    """無料の公開RPCでウォレットのCNP保有数（balanceOf）を取得する。"""
+def _balance_of(address):
+    """公開RPCの balanceOf。フォールバック用（実態と乖離することがある）。"""
     data = "0x70a08231" + "0" * 24 + address.lower().replace("0x", "")
     res = _eth_call(data)
     if res:
@@ -241,6 +241,38 @@ def cnp_balance(address):
         except ValueError:
             return None
     return None
+
+
+_ETHERSCAN_INV_RE = re.compile(r"A total of\s*([\d,]+)\s*tokens?\s*found")
+
+
+def cnp_balance(address):
+    """ウォレットのCNP保有数を返す。balanceOf は実際の所有と乖離することがある
+    （売却後もカウントが残る個体があり、pochi_keep で実測3体に対し5を返す例を確認）。
+    そのためEtherscanのトークン保有インベントリ（Etherscan/OpenSeaの表示と一致する実数）を
+    第一ソースにし、取得できない場合のみ balanceOf にフォールバックする。APIキー不要。"""
+    try:
+        url = (
+            "https://etherscan.io/token/generic-tokenholder-inventory"
+            f"?m=normal&contractAddress={CNP_CONTRACT}&a={address}&p=1"
+        )
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+                ),
+                "Accept": "text/html",
+            },
+        )
+        body = urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace")
+        m = _ETHERSCAN_INV_RE.search(body)
+        if m:
+            return int(m.group(1).replace(",", ""))
+    except Exception:
+        pass
+    return _balance_of(address)
 
 
 def os_name(address):
@@ -403,7 +435,7 @@ def build_snapshot(data_date, prev_snapshot=None):
         if not owner or owner in cnp_cache:
             continue
         cnp_cache[owner] = cnp_balance(owner)
-        time.sleep(0.1)
+        time.sleep(0.5)  # Etherscanへの負荷軽減
 
     # --- 前日スナップショットから first_seen_date / price_history を引き継ぐ ---
     prev_by_token = {}
