@@ -6,7 +6,7 @@
   <title>勝手にCNP TIMES — 高機能版</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" href="logo.png">
-  <link rel="stylesheet" href="advanced.css?v=2.3">
+  <link rel="stylesheet" href="advanced.css?v=2.4">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -106,7 +106,12 @@
         </div>
         <div class="note" id="date-note"></div>
         <div class="panel" id="travel-panel"></div>
-        <div class="panel" id="sales-panel" style="margin-top:16px;"></div>
+
+        <!-- CNP Owner限定: セール明細（見出しは他の限定セクションと同じ形） -->
+        <div class="cnp-sales-section hidden" data-cnp-sales-section>
+          <h2>🔒 CNP Owner限定 セール明細</h2>
+          <div class="panel" id="sales-panel"></div>
+        </div>
 
         <!-- CNP Owner限定: 最安リスト トップ10（日次スナップショット） -->
         <div class="cnp-listings-section hidden" data-cnp-listings-section>
@@ -149,6 +154,6 @@
   </div>
 
   <script src="member.js?v=2.4"></script>
-  <script src="advanced.js?v=1.20"></script>
+  <script src="advanced.js?v=1.21"></script>
 </body>
 </html>

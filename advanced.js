@@ -391,18 +391,22 @@
   window.cnpRerenderSales = () => { if (lastSalesIso) renderSales(lastSalesIso); };
   function renderSales(iso) {
     const panel = $('sales-panel');
+    // 見出し「🔒 CNP Owner限定 セール明細」を持つラッパー。データがある時だけ表示する
+    const salesSection = document.querySelector('[data-cnp-sales-section]');
+    const hideSection = () => { panel.innerHTML = ''; if (salesSection) salesSection.classList.add('hidden'); };
     lastSalesIso = iso;
     const seq = ++SALES_SEQ;
-    panel.innerHTML = ''; // 記録が無い日は箱ごと出さない（:emptyで非表示）
+    hideSection();
     if (!window.CNP_SALES_UNLOCKED) return; // CNPホルダー限定: 未ログイン/非ホルダーは非表示
     fetch(`data/sales/${iso}.json`).then(r => r.ok ? r.json() : null).catch(() => null).then(sales => {
-      if (!window.CNP_SALES_UNLOCKED) { panel.innerHTML = ''; return; } // 取得中にロックされたら破棄
+      if (!window.CNP_SALES_UNLOCKED) { hideSection(); return; } // 取得中にロックされたら破棄
       if (seq !== SALES_SEQ) return; // 日付が変わっていたら破棄
       if (!sales || !sales.length) {
-        panel.innerHTML = '';
+        hideSection(); // 記録が無い日はセクションごと非表示
         return;
       }
-      let h = `<div class="sales-head">🔒 CNP Owner限定　🧾 ${jpDate(iso)} のセールス（${sales.length}件）</div><div class="sales-list">`;
+      if (salesSection) salesSection.classList.remove('hidden');
+      let h = `<div class="sales-head">🧾 ${jpDate(iso)} のセールス（${sales.length}件）</div><div class="sales-list">`;
       for (const s of sales) {
         const item = s.token ? `https://opensea.io/item/ethereum/${CONTRACT}/${s.token}` : '#';
         const jpy = s.price_jpy != null ? `¥${Number(s.price_jpy).toLocaleString('ja-JP')}` : '';

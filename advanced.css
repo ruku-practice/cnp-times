@@ -217,6 +217,14 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
 .cnp-view-mode-select select:hover { border-color: var(--accent); }
 
 /* CNP Owner限定: 日次分析コメントセクション本体 */
+.cnp-sales-section { margin-top: 16px; }
+.cnp-sales-section h2 {
+  display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700;
+  color: var(--text); margin-bottom: 10px;
+}
+.cnp-sales-section h2::before { content: ""; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
+.cnp-sales-section #sales-panel { margin-top: 0; }
+
 .cnp-exclusive-section { margin-top: 16px; }
 .cnp-exclusive-section h2 {
   display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700;
