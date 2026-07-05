@@ -402,7 +402,7 @@
         panel.innerHTML = '';
         return;
       }
-      let h = `<div class="sales-head">🧾 ${jpDate(iso)} のセールス（${sales.length}件）</div><div class="sales-list">`;
+      let h = `<div class="sales-head">🔒 CNP Owner限定　🧾 ${jpDate(iso)} のセールス（${sales.length}件）</div><div class="sales-list">`;
       for (const s of sales) {
         const item = s.token ? `https://opensea.io/item/ethereum/${CONTRACT}/${s.token}` : '#';
         const jpy = s.price_jpy != null ? `¥${Number(s.price_jpy).toLocaleString('ja-JP')}` : '';
