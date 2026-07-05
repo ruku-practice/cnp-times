@@ -25,7 +25,7 @@
   "from": "0x270778E700FF62850e3bC64F81164675b82032b2",
   "to": "0xfe23B7AC4b333d7B9815Fa6f930AdD2A0b117795",
   "tx": "0x533605d1410d0ec3d909b2e85d6bbc25ffcd597a1f0956f1e32d9616012ecb32",
-  "from_cnp": 10,
+  "from_cnp": 0,
   "to_cnp": 7,
   "currency": "ETH"
  },
@@ -40,7 +40,7 @@
   "from": "0x343469bd867AA84002E73923e6Ece43574abb151",
   "to": "0x1A3326bf12589eE53b3f796c9D376EA3df60d459",
   "tx": "0xb9bc2130375ee8f0ff501fe9272ca88c2bcaf5325410daee9bdad29d4f74781b",
-  "from_cnp": 10,
+  "from_cnp": 8,
   "to_cnp": 16,
   "currency": "ETH"
  }

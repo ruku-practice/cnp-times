@@ -680,8 +680,8 @@ class CNPStatsIntegrated:
             return None
         return name or None
 
-    def _cnp_balance(self, address):
-        """無料の公開RPCで受信ウォレットのCNP保有数（balanceOf）を取得。"""
+    def _balance_of(self, address):
+        """公開RPCの balanceOf。フォールバック用（実態と乖離することがある）。"""
         import urllib.request
         import json as _json
         data = '0x70a08231' + '0' * 24 + address.lower().replace('0x', '')
@@ -699,6 +699,28 @@ class CNPStatsIntegrated:
             except Exception:
                 continue
         return None
+
+    def _cnp_balance(self, address):
+        """ウォレットのCNP保有数を返す。balanceOf は実際の所有と乖離することがある
+        （売却後もカウントが残る個体があり、Etherscan/OpenSeaの実表示と食い違う）。
+        そのためEtherscanのトークン保有インベントリ（実数）を第一ソースにし、
+        取得できない場合のみ balanceOf にフォールバックする。APIキー不要。"""
+        import urllib.request
+        import re as _re
+        try:
+            url = ("https://etherscan.io/token/generic-tokenholder-inventory"
+                   f"?m=normal&contractAddress={self.cnp_contract}&a={address}&p=1")
+            req = urllib.request.Request(url, headers={
+                "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                               "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
+                "Accept": "text/html"})
+            body = urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace")
+            m = _re.search(r"A total of\s*([\d,]+)\s*tokens?\s*found", body)
+            if m:
+                return int(m.group(1).replace(",", ""))
+        except Exception:
+            pass
+        return self._balance_of(address)
 
     def _sale_currency(self, tx, seller):
         """売買のtxをオンチェーンで確認し、決済通貨を "WETH" か "ETH" で返す。
@@ -995,23 +1017,48 @@ class CNPStatsIntegrated:
                 (merged_stats, merged_char_stats, "統合")
             ]
 
-            # ===== 当日の重複列ガード =====
-            # 最終列が既に「本日の日付」なら、その列を削除してから書き直す。
-            # これでリトライ・二重起動・遅延フォールバックが重なっても 1日1列 を保証する。
+            # ===== より安全な「次の列」決定ヘルパー =====
+            def _find_next_data_column(ws):
+                """row 2 (日付行) に値が入っている一番右の列を探し、その右隣を返す。
+                col_count だけに頼らず、実際のデータ列をスキャンする。
+                """
+                try:
+                    n = ws.col_count
+                    for c in range(n, 0, -1):
+                        val = ws.cell(2, c).value
+                        if val and str(val).strip():
+                            return c + 1
+                    return 1
+                except Exception:
+                    return ws.col_count + 1
+
+            # ===== 当日の重複列ガード (改善版) =====
+            # 最終的な「データのある列」の日付が今日ならその列を削除。
+            # col_count ではなく実際の日付データで判定。
             for ws in (ws_eth, ws_floor):
                 try:
-                    last_col = ws.col_count
-                    existing_date = ws.cell(2, last_col).value  # row2(=index1) が日付行
-                    if existing_date and existing_date.strip() == date_str:
-                        ws.delete_columns(last_col)
-                        print(f"  [dedup] {ws.title}: 本日({date_str})の既存列(列{last_col})を削除し、書き直します")
+                    # 右端の有効データ列を探す
+                    n = ws.col_count
+                    last_data_col = None
+                    for c in range(n, 0, -1):
+                        val = ws.cell(2, c).value
+                        if val and str(val).strip():
+                            last_data_col = c
+                            break
+                    if last_data_col:
+                        existing_date = ws.cell(2, last_data_col).value
+                        if existing_date and existing_date.strip() == date_str:
+                            ws.delete_columns(last_data_col)
+                            print(f"  [dedup] {ws.title}: 本日({date_str})の既存列(列{last_data_col})を削除し、書き直します")
                 except Exception as e:
                     print(f"  [dedup] {ws.title}: 重複チェックをスキップ: {e}")
 
             # ===== eth_stats シートへの書き込み =====
             print("\n[1] eth_stats シートへの書き込み")
-            max_column_eth = ws_eth.col_count + 1
-            ws_eth.add_cols(1)
+            max_column_eth = _find_next_data_column(ws_eth)
+            # 必要なら列を追加（すでに十分な列数がある場合は何もしない）
+            if max_column_eth > ws_eth.col_count:
+                ws_eth.add_cols(max_column_eth - ws_eth.col_count)
             
             eth_datalist = []
             
@@ -1089,8 +1136,9 @@ class CNPStatsIntegrated:
             
             # ===== floorprice シートへの書き込み =====
             print("\n[2] floorprice シートへの書き込み")
-            max_column_floor = ws_floor.col_count + 1
-            ws_floor.add_cols(1)
+            max_column_floor = _find_next_data_column(ws_floor)
+            if max_column_floor > ws_floor.col_count:
+                ws_floor.add_cols(max_column_floor - ws_floor.col_count)
             
             floor_datalist = []
             

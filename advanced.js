@@ -371,9 +371,14 @@
       : shortAddr(addr);
     return `<a href="https://opensea.io/${addr}" target="_blank" rel="noopener" title="${title}">${inner}</a>`;
   }
+  // 🐤保有数を表示する最古の日付。これより前のセールスは、旧balanceOf方式で
+  // 過大にカウントされていたため保有数を表示しない（2026-07-04以降はEtherscan実数）。
+  const CNP_BADGE_FROM_DATE = '2026-07-04';
+
   // ウォレットの取得時点のCNP保有数バッジ（🐤）。label=送信元/受信先
-  // snap=セールス記録に焼き込まれた値（取得時点）。無ければ従来キャッシュにフォールバック。
-  function cnpBadge(addr, label, snap) {
+  // snap=セールス記録に焼き込まれた値（取得時点）。saleDateがCNP_BADGE_FROM_DATE未満なら非表示。
+  function cnpBadge(addr, label, snap, saleDate) {
+    if (!saleDate || saleDate < CNP_BADGE_FROM_DATE) return '';
     const c = (snap != null) ? snap
       : (addr ? ((WALLETS || {})[addr.toLowerCase()] || {}).cnp : null);
     return (c != null) ? `<span class="sale-cnp" title="${label}の取得時点のCNP保有数">🐤${c}</span>` : '';
@@ -402,10 +407,10 @@
           `<div class="sale-price">${eth(s.price_eth, s.price_eth < 1 ? 3 : 2)} <span class="unit">${s.currency === 'WETH' ? 'WETH' : 'ETH'}</span>${jpy ? `<small>${jpy}</small>` : ''}</div>` +
           `<div class="sale-addr">` +
           walletHtml(s.from, '送信元') +
-          cnpBadge(s.from, '送信元', s.from_cnp) +
+          cnpBadge(s.from, '送信元', s.from_cnp, s.date) +
           `<span class="arrow">→</span>` +
           walletHtml(s.to, '受信先') +
-          cnpBadge(s.to, '受信先', s.to_cnp) +
+          cnpBadge(s.to, '受信先', s.to_cnp, s.date) +
           `${s.tx ? `<a class="sale-tx" href="https://etherscan.io/tx/${s.tx}" target="_blank" rel="noopener">tx↗</a>` : ''}` +
           `</div></div></div>`;
       }
