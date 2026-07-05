@@ -1558,12 +1558,21 @@ def build_site_data(base_dir=None):
             e_idx = {d: i for i, d in enumerate(e_dates)}
             union = sorted(set(h_dates) | set(e_dates))
 
+            # 初期期間（2022-06-27取得分まで）は、ひろゆきさん提供のシート(history_early)を正とする。
+            # この期間は当時の実パイプラインの値に既知の誤り（例: リスト数へオーナー数が混入した
+            # 4411 等）があり、シートの方が信頼できるため early を優先する。
+            # ※このマージは日付シフト前（取得日ベース）に行うので閾値も取得日ベース。
+            EARLY_AUTHORITATIVE_UNTIL = "2022-06-27"
+
             def merge_series(h_arr, e_arr):
                 out = []
                 for d in union:
                     hv = h_arr[h_idx[d]] if (h_arr is not None and d in h_idx) else None
                     ev = e_arr[e_idx[d]] if (e_arr is not None and d in e_idx) else None
-                    out.append(hv if hv is not None else ev)
+                    if d <= EARLY_AUTHORITATIVE_UNTIL:
+                        out.append(ev if ev is not None else hv)  # 初期はシート優先
+                    else:
+                        out.append(hv if hv is not None else ev)  # 以降は実データ優先
                 return out
 
             # 単純な系列（top-level）
