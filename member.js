@@ -19,6 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const listingsSection = document.querySelector('[data-cnp-listings-section]');
   if (!authHeader && !section && !listingsSection) return;
 
+  // セール明細（advanced.jsが描画）もCNPホルダー限定にする。既定はロックし、
+  // owner/editor 確認後にアンロックする。advanced.js より先に実行されるので、
+  // ここで false にしておけば公開データが一瞬でも出ることはない。
+  window.CNP_SALES_UNLOCKED = false;
+  function setSalesUnlocked(unlocked) {
+    window.CNP_SALES_UNLOCKED = !!unlocked;
+    if (typeof window.cnpRerenderSales === 'function') window.cnpRerenderSales();
+  }
+
   // --- 表示モード切替（editor限定・あくまで表示のシミュレーション） --------------
   // JWTやAPI権限はそのまま。描画時に使う owner/editor フラグだけをモードで上書きする。
   // - editor: 現状どおり（デフォルト）
@@ -218,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.removeItem(VIEW_MODE_KEY);
     if (section) section.classList.add('hidden');
     if (listingsSection) listingsSection.classList.add('hidden');
+    setSalesUnlocked(false);
     renderHeaderLoggedOut();
   }
 
@@ -942,6 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHeaderLoggedOut();
         if (section) section.classList.add('hidden');
         if (listingsSection) listingsSection.classList.add('hidden');
+        setSalesUnlocked(false);
         return;
       }
 
@@ -951,6 +962,7 @@ document.addEventListener('DOMContentLoaded', () => {
       async function renderContentForMode(mode) {
         setViewMode(mode);
         const effectiveMe = applyViewMode(realMe, mode);
+        setSalesUnlocked(effectiveMe.owner || effectiveMe.editor); // セール明細もホルダー限定
         renderListings(token, effectiveMe);
         if (!effectiveMe.owner && !effectiveMe.editor) {
           if (section) section.classList.add('hidden');

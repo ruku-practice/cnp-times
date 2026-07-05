@@ -384,11 +384,19 @@
     return (c != null) ? `<span class="sale-cnp" title="${label}の取得時点のCNP保有数">🐤${c}</span>` : '';
   }
   let SALES_SEQ = 0;
+  let lastSalesIso = null;
+  // セール明細もCNPホルダー限定。member.js が window.CNP_SALES_UNLOCKED を制御する。
+  // member.js が未設定（バックエンド未デプロイ）の場合は従来どおり公開扱い。
+  if (typeof window.CNP_SALES_UNLOCKED === 'undefined') window.CNP_SALES_UNLOCKED = true;
+  window.cnpRerenderSales = () => { if (lastSalesIso) renderSales(lastSalesIso); };
   function renderSales(iso) {
     const panel = $('sales-panel');
+    lastSalesIso = iso;
     const seq = ++SALES_SEQ;
     panel.innerHTML = ''; // 記録が無い日は箱ごと出さない（:emptyで非表示）
+    if (!window.CNP_SALES_UNLOCKED) return; // CNPホルダー限定: 未ログイン/非ホルダーは非表示
     fetch(`data/sales/${iso}.json`).then(r => r.ok ? r.json() : null).catch(() => null).then(sales => {
+      if (!window.CNP_SALES_UNLOCKED) { panel.innerHTML = ''; return; } // 取得中にロックされたら破棄
       if (seq !== SALES_SEQ) return; // 日付が変わっていたら破棄
       if (!sales || !sales.length) {
         panel.innerHTML = '';
