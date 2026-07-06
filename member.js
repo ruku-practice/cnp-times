@@ -410,20 +410,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 閲覧ビュー: 独自のプルダウンは持たず、ページ上部の日付ナビ（#date-picker）と連動する。
   // 選択日の記事が無い場合は、それより前で直近の記事をフォールバック表示する。
-  // 投稿元バッジ（編集者にのみ表示）。source: extension/web/discord/api
+  // 投稿元バッジは管理者（るくさん）にのみ表示する。source: extension/web/discord/api
+  const ADMIN_USER_ID = '929922836586446878';
   const SOURCE_LABELS = {
     extension: '🔌 Chrome拡張から投稿',
     api: '🔌 API連携から投稿',
     web: '✍️ Webエディタで編集',
     discord: '🤖 Discordから自動取り込み'
   };
-  function sourceBadge(entry, isEditor) {
-    if (!isEditor) return '';
+  function sourceBadge(entry, showSource) {
+    if (!showSource) return '';
     const label = SOURCE_LABELS[entry.source] || '投稿元不明';
-    return `<span class="cnp-entry-source" title="この記事の投稿元（編集者のみ表示）">${escapeHtml(label)}</span>`;
+    return `<span class="cnp-entry-source" title="この記事の投稿元（管理者のみ表示）">${escapeHtml(label)}</span>`;
   }
 
-  function renderViewer(viewerEl, token, entries, isEditor) {
+  function renderViewer(viewerEl, token, entries, showSource) {
     if (entries.length === 0) {
       viewerEl.innerHTML = `<p class="cnp-exclusive-msg">まだ記事がありません。分析者が記事を書くとここに表示されます。</p>`;
       return null;
@@ -468,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
         entryCache[target] = entry;
         contentEl.innerHTML = `
           <h3 class="cnp-exclusive-title">${escapeHtml(entry.title)}</h3>
-          <p class="cnp-exclusive-updated">${escapeHtml(postedLabel(entry))}${sourceBadge(entry, isEditor)}</p>
+          <p class="cnp-exclusive-updated">${escapeHtml(postedLabel(entry))}${sourceBadge(entry, showSource)}</p>
           <div class="cnp-entry-body">${renderMarkdown(entry.body_md)}</div>
         `;
         displayedDate = target; // 表示が完了してから確定（失敗時は次の操作で再取得される）
@@ -900,7 +901,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function reloadViewer() {
       try {
         const list = await fetchEntriesCached(token, true); // 保存・削除後は取り直す
-        viewerApi = renderViewer(viewerEl, token, list, me.editor);
+        viewerApi = renderViewer(viewerEl, token, list, me.editor && me.id === ADMIN_USER_ID);
         if (viewerApi) viewerApi.showForDate(currentIso);
       } catch (err) {
         console.error('[member.js] 記事一覧の取得に失敗しました:', err);
@@ -911,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (entries === null) {
       viewerEl.innerHTML = `<p class="cnp-exclusive-msg">${STATUS_MESSAGES.fetch_error}</p>`;
     } else {
-      viewerApi = renderViewer(viewerEl, token, entries, me.editor);
+      viewerApi = renderViewer(viewerEl, token, entries, me.editor && me.id === ADMIN_USER_ID);
     }
 
     hookDateNav(applyDate);

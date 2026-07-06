@@ -260,7 +260,9 @@ def _lookup_api_key_payload(api_key):
     """
     for candidate, (user_id, name) in EDITOR_API_KEYS.items():
         if hmac.compare_digest(candidate, api_key):
-            return {"sub": user_id, "name": name, "owner": True, "editor": True, "roles": []}
+            # _auth はAPIキー認証（=Chrome拡張/API連携。Webエディタの直接編集ではない）の目印
+            return {"sub": user_id, "name": name, "owner": True, "editor": True,
+                    "roles": [], "_auth": "apikey"}
     return None
 
 
@@ -615,9 +617,10 @@ def api_entries_put(date):
         posted_at = body.get("posted_at")
         if _valid_posted_at(posted_at):
             entry["posted_at"] = posted_at.strip()
-    # 投稿元（拡張/Webエディタ等）。編集モードで判別できるよう最終保存元を記録する
-    src = body.get("source")
-    entry["source"] = src if src in ("extension", "web", "api", "discord") else "web"
+    # 投稿元は認証方法で判定する（クライアント申告より堅牢）。
+    # APIキー認証＝Chrome拡張/API連携＝「直接編集ではない」→ extension、
+    # JWT（Discordログイン）＝Webエディタでの直接編集 → web。
+    entry["source"] = "extension" if payload.get("_auth") == "apikey" else "web"
     get_storage().put_bytes(
         _entry_key(date), json.dumps(entry, ensure_ascii=False).encode("utf-8"), "application/json"
     )
