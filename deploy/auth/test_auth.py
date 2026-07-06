@@ -640,6 +640,59 @@ class ApiEntriesSearchTests(unittest.TestCase):
         dates = [r["date"] for r in resp.get_json()["results"]]
         self.assertIn("2026-07-01", dates)
 
+    # from/toで期間を絞り込める（両端含む）
+    def test_date_range_filters_results_inclusive(self):
+        editor_token = self._editor_token()
+        for d in ["2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03"]:
+            self._put(editor_token, d, "記事", "ATHを更新しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=ATH&from=2026-07-01&to=2026-07-02",
+            headers=self._auth(editor_token),
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertEqual(sorted(dates), ["2026-07-01", "2026-07-02"])
+
+    # fromのみ指定: 以降すべて
+    def test_date_range_from_only(self):
+        editor_token = self._editor_token()
+        for d in ["2026-06-30", "2026-07-01", "2026-07-02"]:
+            self._put(editor_token, d, "記事", "ATHを更新しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=ATH&from=2026-07-01", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertEqual(sorted(dates), ["2026-07-01", "2026-07-02"])
+
+    # toのみ指定: それ以前すべて
+    def test_date_range_to_only(self):
+        editor_token = self._editor_token()
+        for d in ["2026-06-30", "2026-07-01", "2026-07-02"]:
+            self._put(editor_token, d, "記事", "ATHを更新しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=ATH&to=2026-07-01", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertEqual(sorted(dates), ["2026-06-30", "2026-07-01"])
+
+    # 不正な形式のfrom/toは無視される（絞り込みなしとして扱う）
+    def test_invalid_date_range_params_are_ignored(self):
+        editor_token = self._editor_token()
+        self._put(editor_token, "2026-07-01", "記事", "ATHを更新しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=ATH&from=not-a-date&to=also-bad",
+            headers=self._auth(editor_token),
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertIn("2026-07-01", dates)
+
 
 class ApiKeyAuthTests(unittest.TestCase):
     """長期APIキー認証（Chrome拡張用）: X-Api-Key ヘッダーによる認証・posted_at受け入れ。"""

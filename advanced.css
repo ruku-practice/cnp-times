@@ -164,6 +164,8 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
   .cnp-search-row { flex-direction: column; align-items: stretch; }
   .cnp-search-input { flex-basis: auto; }
   .cnp-search-btn, .cnp-search-clear-btn { width: 100%; }
+  .cnp-search-range-row { flex-wrap: wrap; }
+  .cnp-search-date { flex: 1 1 42%; }
 }
 
 /* ===== Loader ===== */
@@ -262,6 +264,17 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
   border: none; color: #fff; background: var(--accent-2); font-weight: 700;
 }
 .cnp-search-btn:hover { opacity: .85; border-color: transparent; color: #fff; }
+.cnp-search-range-row {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px;
+  font-size: 12px; color: var(--text-dim);
+}
+.cnp-search-range-row label { font-weight: 700; }
+.cnp-search-date {
+  font-size: 12.5px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--text); font-family: inherit;
+}
+.cnp-search-range-sep { color: var(--text-dim); }
+.cnp-search-range-hint { font-size: 11px; color: var(--text-dim); }
 .cnp-search-results { margin-top: 12px; }
 .cnp-search-result-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .cnp-search-result-item {

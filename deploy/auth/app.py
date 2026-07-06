@@ -756,7 +756,11 @@ def _snippet_for(text, terms):
 
 @app.route("/api/entries/search", methods=["GET"])
 def api_entries_search():
-    """owner または editor: title+本文を横断検索する（全語AND・大文字小文字無視）。"""
+    """owner または editor: title+本文を横断検索する（全語AND・大文字小文字無視）。
+
+    from/to（YYYY-MM-DD、両端含む）で対象日付範囲を絞り込める。日付文字列は
+    YYYY-MM-DD形式なので辞書順比較がそのまま日付順比較になる。不正な形式は無視する。
+    """
     _, err = _require_viewer()
     if err:
         return err
@@ -771,6 +775,13 @@ def api_entries_search():
         limit = DEFAULT_SEARCH_LIMIT
     limit = max(1, min(limit, MAX_SEARCH_LIMIT))
 
+    date_from = request.args.get("from", "").strip()
+    if not DATE_RE.match(date_from):
+        date_from = None
+    date_to = request.args.get("to", "").strip()
+    if not DATE_RE.match(date_to):
+        date_to = None
+
     terms = q.split()
 
     idx = _load_search()
@@ -780,6 +791,10 @@ def api_entries_search():
     results = []
     for date, row in idx.items():
         if not DATE_RE.match(date):
+            continue
+        if date_from and date < date_from:
+            continue
+        if date_to and date > date_to:
             continue
         title = row.get("title", "")
         text = row.get("text", "")

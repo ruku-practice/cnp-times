@@ -269,9 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return resp.json();
   }
 
-  // 分析コメントの本文まで横断検索する（owner/editor限定）
-  async function searchEntries(token, q) {
-    const resp = await fetch(AUTH_BASE_URL + '/api/entries/search?' + new URLSearchParams({ q }), {
+  // 分析コメントの本文まで横断検索する（owner/editor限定）。dateFrom/dateToはYYYY-MM-DD、省略可
+  async function searchEntries(token, q, dateFrom, dateTo) {
+    const params = { q };
+    if (dateFrom) params.from = dateFrom;
+    if (dateTo) params.to = dateTo;
+    const resp = await fetch(AUTH_BASE_URL + '/api/entries/search?' + new URLSearchParams(params), {
       headers: { Authorization: 'Bearer ' + token }
     });
     if (!resp.ok) throw new Error('api/entries/search failed: ' + resp.status);
@@ -393,6 +396,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <input type="search" class="cnp-search-input" data-cnp-search-input placeholder="コメントを検索（例: ATH フロア）">
           <button type="button" class="btn cnp-search-btn" data-cnp-search-btn>検索</button>
           <button type="button" class="btn ghost cnp-search-clear-btn hidden" data-cnp-search-clear>クリア</button>
+        </div>
+        <div class="cnp-search-range-row">
+          <label for="cnp-search-from">期間</label>
+          <input type="date" class="cnp-search-date" data-cnp-search-from id="cnp-search-from">
+          <span class="cnp-search-range-sep">〜</span>
+          <input type="date" class="cnp-search-date" data-cnp-search-to id="cnp-search-to">
+          <span class="cnp-search-range-hint">（未指定なら全期間）</span>
         </div>
         <div class="cnp-search-results hidden" data-cnp-search-results></div>
       </div>
@@ -524,6 +534,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchBtn = searchEl.querySelector('[data-cnp-search-btn]');
     const clearBtn = searchEl.querySelector('[data-cnp-search-clear]');
     const resultsEl = searchEl.querySelector('[data-cnp-search-results]');
+    const fromInput = searchEl.querySelector('[data-cnp-search-from]');
+    const toInput = searchEl.querySelector('[data-cnp-search-to]');
     if (!input || !searchBtn || !clearBtn || !resultsEl) return;
 
     let reqSeq = 0;
@@ -536,6 +548,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function clearAll() {
       input.value = '';
+      if (fromInput) fromInput.value = '';
+      if (toInput) toInput.value = '';
       clearResults();
     }
 
@@ -545,12 +559,14 @@ document.addEventListener('DOMContentLoaded', () => {
         clearResults();
         return;
       }
+      const dateFrom = fromInput ? fromInput.value : '';
+      const dateTo = toInput ? toInput.value : '';
       const myReq = ++reqSeq;
       resultsEl.classList.remove('hidden');
       clearBtn.classList.remove('hidden');
       resultsEl.innerHTML = `<p class="cnp-exclusive-msg">検索中...</p>`;
       try {
-        const { results } = await searchEntries(token, q);
+        const { results } = await searchEntries(token, q, dateFrom, dateTo);
         if (myReq !== reqSeq) return;
         if (!results || results.length === 0) {
           resultsEl.innerHTML = `<p class="cnp-exclusive-msg">一致するコメントはありませんでした。</p>`;
@@ -587,6 +603,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         runSearch();
       }
+    });
+    // 期間を変更したときは、既にキーワードが入っていれば自動で再検索する
+    [fromInput, toInput].forEach((el) => {
+      if (el) el.addEventListener('change', () => { if (input.value.trim()) runSearch(); });
     });
     clearBtn.addEventListener('click', clearAll);
   }
