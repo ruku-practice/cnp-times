@@ -444,6 +444,203 @@ class ApiEntriesTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 400)
 
 
+class ApiEntriesSearchTests(unittest.TestCase):
+    """/api/entries/search（本文まで横断検索する全文検索API）。"""
+
+    def setUp(self):
+        app_module.app.testing = True
+        self.client = app_module.app.test_client()
+        app_module.reset_storage_cache()
+        _cleanup_content_dir()
+
+    def tearDown(self):
+        app_module.reset_storage_cache()
+        _cleanup_content_dir()
+
+    def _editor_token(self):
+        return app_module._issue_session_jwt("editor-1", "分析者", False, [], editor=True)
+
+    def _owner_token(self):
+        return app_module._issue_session_jwt("owner-1", "オーナー太郎", True, [REQUIRED_ROLE_ID])
+
+    def _non_owner_token(self):
+        return app_module._issue_session_jwt("456", "非オーナー", False, [OTHER_ROLE_ID])
+
+    def _auth(self, token):
+        return {"Authorization": f"Bearer {token}"}
+
+    def _put(self, token, date, title, body_md):
+        resp = self.client.put(
+            f"/api/entries/{date}",
+            json={"title": title, "body_md": body_md},
+            headers=self._auth(token),
+        )
+        self.assertEqual(resp.status_code, 200)
+        return resp.get_json()
+
+    # PUTすると本文がヒットする語で検索でき、該当日が返る
+    def test_put_updates_search_index_and_hits_by_body_text(self):
+        editor_token = self._editor_token()
+        self._put(editor_token, "2026-07-01", "7/1の分析", "ATHを更新しフロア価格が上昇しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=フロア価格", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(data["query"], "フロア価格")
+        dates = [r["date"] for r in data["results"]]
+        self.assertIn("2026-07-01", dates)
+
+    # DELETEすると検索結果から消える
+    def test_delete_removes_from_search_index(self):
+        editor_token = self._editor_token()
+        self._put(editor_token, "2026-07-01", "7/1の分析", "ATHを更新しフロア価格が上昇しました")
+        self.client.delete("/api/entries/2026-07-01", headers=self._auth(editor_token))
+
+        resp = self.client.get(
+            "/api/entries/search?q=フロア価格", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertNotIn("2026-07-01", dates)
+
+    # AND検索: 2語両方含む記事のみヒットする
+    def test_and_search_requires_all_terms(self):
+        editor_token = self._editor_token()
+        self._put(editor_token, "2026-07-01", "記事A", "ATHを更新しフロア価格が上昇しました")
+        self._put(editor_token, "2026-07-02", "記事B", "ATHの話題は無く出来高だけ増えました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=ATH+フロア", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertIn("2026-07-01", dates)
+        self.assertNotIn("2026-07-02", dates)
+
+    # 大文字小文字を無視してマッチする
+    def test_search_is_case_insensitive(self):
+        editor_token = self._editor_token()
+        self._put(editor_token, "2026-07-01", "記事", "ATHを更新しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=ath", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertIn("2026-07-01", dates)
+
+    # snippetにマッチ周辺の文字列が含まれる
+    def test_search_returns_snippet_around_match(self):
+        editor_token = self._editor_token()
+        self._put(
+            editor_token,
+            "2026-07-01",
+            "記事",
+            "本日の相場は落ち着いていましたが、ATHを更新しフロア価格が上昇しました。今後の動向に注目です。",
+        )
+
+        resp = self.client.get(
+            "/api/entries/search?q=フロア価格", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        results = resp.get_json()["results"]
+        self.assertEqual(len(results), 1)
+        self.assertIn("フロア価格", results[0]["snippet"])
+
+    # 画像Markdownは検索テキストから除去される（画像パスの文字列ではヒットしない）
+    def test_image_markdown_is_stripped_from_search_text(self):
+        editor_token = self._editor_token()
+        self._put(
+            editor_token,
+            "2026-07-01",
+            "記事",
+            "本文です ![説明](/api/images/abcdef1234567890abcdef1234567890.png) 続きの本文",
+        )
+
+        resp = self.client.get(
+            "/api/entries/search?q=abcdef1234567890abcdef1234567890",
+            headers=self._auth(editor_token),
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.get_json()["results"], [])
+
+    # 非owner非editorは403
+    def test_search_forbidden_for_non_owner_non_editor(self):
+        token = self._non_owner_token()
+        resp = self.client.get("/api/entries/search?q=ATH", headers=self._auth(token))
+        self.assertEqual(resp.status_code, 403)
+
+    # 無トークンは401
+    def test_search_without_token_returns_401(self):
+        resp = self.client.get("/api/entries/search?q=ATH")
+        self.assertEqual(resp.status_code, 401)
+
+    # ownerも検索できる（閲覧系なので_require_viewer）
+    def test_owner_can_search(self):
+        editor_token = self._editor_token()
+        owner_token = self._owner_token()
+        self._put(editor_token, "2026-07-01", "記事", "ATHを更新しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=ATH", headers=self._auth(owner_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertIn("2026-07-01", dates)
+
+    # qが空/空白のみなら空results
+    def test_empty_query_returns_empty_results(self):
+        editor_token = self._editor_token()
+        self._put(editor_token, "2026-07-01", "記事", "ATHを更新しました")
+
+        for empty_q in ["", "   "]:
+            resp = self.client.get(
+                f"/api/entries/search?q={empty_q}", headers=self._auth(editor_token)
+            )
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.get_json()["results"], [])
+
+    # マッチ0件は空配列
+    def test_no_match_returns_empty_results(self):
+        editor_token = self._editor_token()
+        self._put(editor_token, "2026-07-01", "記事", "ATHを更新しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=存在しない単語XYZ", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.get_json()["results"], [])
+
+    # 結果は日付降順でソートされ、limitで件数が制限される
+    def test_results_sorted_desc_and_limited(self):
+        editor_token = self._editor_token()
+        for d in ["2026-07-01", "2026-07-02", "2026-07-03"]:
+            self._put(editor_token, d, "記事", "ATHを更新しました")
+
+        resp = self.client.get(
+            "/api/entries/search?q=ATH&limit=2", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertEqual(dates, ["2026-07-03", "2026-07-02"])
+
+    # _search.jsonが存在しない場合は自動的に再構築してから検索する
+    def test_rebuilds_search_index_when_missing(self):
+        editor_token = self._editor_token()
+        self._put(editor_token, "2026-07-01", "記事", "ATHを更新しました")
+        # _search.jsonを直接削除して欠損状態を再現する
+        app_module.get_storage().delete(app_module.SEARCH_KEY)
+
+        resp = self.client.get(
+            "/api/entries/search?q=ATH", headers=self._auth(editor_token)
+        )
+        self.assertEqual(resp.status_code, 200)
+        dates = [r["date"] for r in resp.get_json()["results"]]
+        self.assertIn("2026-07-01", dates)
+
+
 class ApiKeyAuthTests(unittest.TestCase):
     """長期APIキー認証（Chrome拡張用）: X-Api-Key ヘッダーによる認証・posted_at受け入れ。"""
 

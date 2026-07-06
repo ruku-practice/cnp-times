@@ -269,6 +269,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return resp.json();
   }
 
+  // 分析コメントの本文まで横断検索する（owner/editor限定）
+  async function searchEntries(token, q) {
+    const resp = await fetch(AUTH_BASE_URL + '/api/entries/search?' + new URLSearchParams({ q }), {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!resp.ok) throw new Error('api/entries/search failed: ' + resp.status);
+    return resp.json();
+  }
+
   // 最安リスト トップ10 スナップショット（日付ごと・GETのみ）
   async function fetchListing(token, date) {
     const resp = await fetch(AUTH_BASE_URL + '/api/listings/' + encodeURIComponent(date), {
@@ -379,6 +388,14 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="cnp-owner-badge">✅ ${ctx.owner ? 'CNP Owner確認済み' : 'アクセス確認済み'}</span>
         ${editorToggle}
       </div>
+      <div class="cnp-search" data-cnp-search>
+        <div class="cnp-search-row">
+          <input type="search" class="cnp-search-input" data-cnp-search-input placeholder="コメントを検索（例: ATH フロア）">
+          <button type="button" class="btn cnp-search-btn" data-cnp-search-btn>検索</button>
+          <button type="button" class="btn ghost cnp-search-clear-btn hidden" data-cnp-search-clear>クリア</button>
+        </div>
+        <div class="cnp-search-results hidden" data-cnp-search-results></div>
+      </div>
       <div class="cnp-entry-editor hidden" data-cnp-editor></div>
       <div class="cnp-entry-viewer" data-cnp-viewer></div>
     `;
@@ -387,8 +404,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerSaveBtn = body.querySelector('[data-cnp-header-save]');
     const editorEl = body.querySelector('[data-cnp-editor]');
     const viewerEl = body.querySelector('[data-cnp-viewer]');
+    const searchEl = body.querySelector('[data-cnp-search]');
     // onOpen / onBeforeClose は renderEntries 側で差し込む（開いた時の記事読込・未保存確認）
-    const shellApi = { viewerEl, editorEl, editorToggleBtn, headerSaveBtn, onOpen: null, onBeforeClose: null };
+    const shellApi = { viewerEl, editorEl, searchEl, editorToggleBtn, headerSaveBtn, onOpen: null, onBeforeClose: null };
     if (editorToggleBtn) {
       // フォームは記事本文より上（ボタン直下）に開く。長い記事の下に開くと
       // 画面上何も起きていないように見えるため（Brave等での実測不具合）。
@@ -482,6 +500,95 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return { showForDate, getDisplayedDate: () => displayedDate };
+  }
+
+  // snippet中の検索語をハイライトする。escapeHtml済みの文字列に対して<mark>を差し込む
+  // （XSS対策のため、まずsnippet全体をエスケープしてから、エスケープ後の語で置換する）
+  function highlightSnippet(snippet, terms) {
+    let escaped = escapeHtml(snippet);
+    const escapedTerms = terms
+      .map((t) => escapeHtml(t))
+      .filter((t) => t.length > 0)
+      .sort((a, b) => b.length - a.length); // 長い語から置換し部分重複を避ける
+    escapedTerms.forEach((term) => {
+      const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      escaped = escaped.replace(re, (m) => `<mark>${m}</mark>`);
+    });
+    return escaped;
+  }
+
+  // 検索UI: 分析コメントの本文まで横断検索し、結果クリックで該当日にジャンプする
+  function renderSearch(searchEl, token, onJumpToDate) {
+    if (!searchEl) return;
+    const input = searchEl.querySelector('[data-cnp-search-input]');
+    const searchBtn = searchEl.querySelector('[data-cnp-search-btn]');
+    const clearBtn = searchEl.querySelector('[data-cnp-search-clear]');
+    const resultsEl = searchEl.querySelector('[data-cnp-search-results]');
+    if (!input || !searchBtn || !clearBtn || !resultsEl) return;
+
+    let reqSeq = 0;
+
+    function clearResults() {
+      resultsEl.classList.add('hidden');
+      resultsEl.innerHTML = '';
+      clearBtn.classList.add('hidden');
+    }
+
+    function clearAll() {
+      input.value = '';
+      clearResults();
+    }
+
+    async function runSearch() {
+      const q = input.value.trim();
+      if (!q) {
+        clearResults();
+        return;
+      }
+      const myReq = ++reqSeq;
+      resultsEl.classList.remove('hidden');
+      clearBtn.classList.remove('hidden');
+      resultsEl.innerHTML = `<p class="cnp-exclusive-msg">検索中...</p>`;
+      try {
+        const { results } = await searchEntries(token, q);
+        if (myReq !== reqSeq) return;
+        if (!results || results.length === 0) {
+          resultsEl.innerHTML = `<p class="cnp-exclusive-msg">一致するコメントはありませんでした。</p>`;
+          return;
+        }
+        const terms = q.split(/\s+/).filter(Boolean);
+        resultsEl.innerHTML = `
+          <ul class="cnp-search-result-list">
+            ${results.map((r) => `
+              <li class="cnp-search-result-item" data-cnp-search-result data-date="${escapeHtml(r.date)}">
+                <span class="cnp-search-result-date">${escapeHtml(jpDateLabel(r.date))}</span>
+                <span class="cnp-search-result-title">${escapeHtml(r.title)}</span>
+                <span class="cnp-search-result-snippet">${highlightSnippet(r.snippet, terms)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+        resultsEl.querySelectorAll('[data-cnp-search-result]').forEach((li) => {
+          li.addEventListener('click', () => {
+            const date = li.getAttribute('data-date');
+            if (date) onJumpToDate(date);
+          });
+        });
+      } catch (err) {
+        if (myReq !== reqSeq) return;
+        console.error('[member.js] コメントの検索に失敗しました:', err);
+        resultsEl.innerHTML = `<p class="cnp-exclusive-msg">${STATUS_MESSAGES.fetch_error}</p>`;
+      }
+    }
+
+    searchBtn.addEventListener('click', runSearch);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runSearch();
+      }
+    });
+    clearBtn.addEventListener('click', clearAll);
   }
 
   // ページ上部の日付ナビ（advanced.js の #date-picker と◀▶ボタン）に連動フックを張る。
@@ -886,7 +993,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const shell = renderExclusiveShell({ owner: me.owner, editor: me.editor });
     if (!shell) return;
-    const { viewerEl, editorEl } = shell;
+    const { viewerEl, editorEl, searchEl } = shell;
 
     // 上部の日付ナビと連動するビューア。保存・削除後の再描画でもフックを張り直さないよう
     // viewerApi を差し替える形にする
@@ -897,6 +1004,17 @@ document.addEventListener('DOMContentLoaded', () => {
       currentIso = iso || currentIso;
       if (viewerApi) viewerApi.showForDate(currentIso);
     };
+
+    // 検索結果クリック時: ページ上部の日付ピッカーの値をその日付にしてchangeイベントを
+    // 発火させる（hookDateNav経由で分析コメント表示がその日に切り替わる）
+    function jumpToDate(date) {
+      const picker = document.getElementById('date-picker');
+      if (!picker) return;
+      picker.value = date;
+      picker.dispatchEvent(new Event('change'));
+    }
+
+    renderSearch(searchEl, token, jumpToDate);
 
     async function reloadViewer() {
       try {

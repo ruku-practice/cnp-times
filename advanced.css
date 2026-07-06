@@ -161,6 +161,9 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
   .brand h1 { font-size: 18px; }
   .card .v { font-size: 19px; }
   .chart-box { height: 280px; }
+  .cnp-search-row { flex-direction: column; align-items: stretch; }
+  .cnp-search-input { flex-basis: auto; }
+  .cnp-search-btn, .cnp-search-clear-btn { width: 100%; }
 }
 
 /* ===== Loader ===== */
@@ -245,6 +248,36 @@ table.t .seclabel { font-weight: 700; color: var(--accent-2); background: var(--
 .cnp-exclusive-block { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .cnp-exclusive-block h4 { font-size: 14px; font-weight: 700; margin: 0 0 4px; color: var(--text); }
 .cnp-exclusive-block p { margin: 0; color: var(--text); }
+
+/* 分析コメントの本文まで横断検索するUI */
+.cnp-search { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px dashed var(--border); }
+.cnp-search-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cnp-search-input {
+  flex: 1 1 220px; min-width: 0; font-size: 13px; padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--text); font-family: inherit;
+}
+.cnp-search-input::placeholder { color: var(--text-dim); }
+.cnp-search-btn {
+  border: none; color: #fff; background: var(--accent-2); font-weight: 700;
+}
+.cnp-search-btn:hover { opacity: .85; border-color: transparent; color: #fff; }
+.cnp-search-results { margin-top: 12px; }
+.cnp-search-result-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cnp-search-result-item {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface-2); cursor: pointer; transition: border-color .15s ease, background .15s ease;
+}
+.cnp-search-result-item:hover { border-color: var(--accent-2); background: var(--surface); }
+.cnp-search-result-date { font-size: 12px; font-weight: 700; color: var(--accent-2); white-space: nowrap; }
+.cnp-search-result-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.cnp-search-result-snippet {
+  flex-basis: 100%; font-size: 12.5px; color: var(--text-dim); line-height: 1.5;
+}
+.cnp-search-result-snippet mark {
+  background: var(--up-bg); color: var(--up); font-weight: 700; border-radius: 3px; padding: 0 2px;
+}
 
 /* CNP Owner限定: 最安リスト トップ10セクション本体 */
 .cnp-listings-section { margin-top: 16px; }
