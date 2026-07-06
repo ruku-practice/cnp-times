@@ -1,0 +1,17 @@
+[
+ {
+  "date": "2026-07-06",
+  "time": "09:50",
+  "token": "17302",
+  "image": "https://data.cryptoninjapartners.com/images/17302.png",
+  "character": "Leelee",
+  "price_eth": 0.18,
+  "price_jpy": 52174,
+  "from": "0x94AA50fE3c1ad32b0419004eeE4f278ca3908876",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0x943cdd50bd448ef81cdb1fa8c24cd6f1a78810e1d8e5c6fcdd578623cf504787",
+  "from_cnp": 2,
+  "to_cnp": 100,
+  "currency": "WETH"
+ }
+]

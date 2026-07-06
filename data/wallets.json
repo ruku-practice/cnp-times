@@ -10,7 +10,7 @@
   "name_done": true
  },
  "0x0b4372e936f4c9d86217488ba39b043e77882c25": {
-  "cnp": 99,
+  "cnp": 100,
   "name": "running-mole",
   "name_done": true
  },
@@ -698,5 +698,10 @@
   "name": "MCC_AZ",
   "name_done": true,
   "cnp": 1
+ },
+ "0x94aa50fe3c1ad32b0419004eee4f278ca3908876": {
+  "name": "brainpastaOP",
+  "name_done": true,
+  "cnp": 2
  }
 }
