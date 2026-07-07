@@ -1,0 +1,32 @@
+[
+ {
+  "date": "2026-07-07",
+  "time": "14:03",
+  "token": "24783",
+  "image": "https://data.cryptoninjapartners.com/towasetsuna/images/581.png",
+  "character": "Towa",
+  "price_eth": 0.211,
+  "price_jpy": 60326,
+  "from": "0xb6FA0108794dC769EF37bDdd01d8d1F1b5e80691",
+  "to": "0xf15b2D971B9b320d931B5264Df47af3B4DB82981",
+  "tx": "0x84093c193e5100bcae1d42aa0a00b92ce38c52abc7b9afb83e64f0235681f570",
+  "from_cnp": 6,
+  "to_cnp": 14,
+  "currency": "ETH"
+ },
+ {
+  "date": "2026-07-07",
+  "time": "13:07",
+  "token": "6127",
+  "image": "https://data.cryptoninjapartners.com/images/6127.png",
+  "character": "Mitama",
+  "price_eth": 0.2,
+  "price_jpy": 57354,
+  "from": "0x924fCAceaE7187629F7974D2f570D5F6cDb20052",
+  "to": "0x79F29D23C77a6A6ff087f6448D54f370f7a199f2",
+  "tx": "0xebbd49c29a82174fce67f0b72642ed290f3202fdbdf891697191dd1b8ebf720d",
+  "from_cnp": 15,
+  "to_cnp": 9,
+  "currency": "ETH"
+ }
+]

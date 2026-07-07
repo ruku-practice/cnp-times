@@ -70,7 +70,7 @@
   "name_done": true
  },
  "0x79f29d23c77a6a6ff087f6448d54f370f7a199f2": {
-  "cnp": 8,
+  "cnp": 9,
   "name": "matabee",
   "name_done": true
  },
@@ -180,7 +180,7 @@
   "name_done": true
  },
  "0xf15b2d971b9b320d931b5264df47af3b4db82981": {
-  "cnp": 13,
+  "cnp": 14,
   "name": "takakisi",
   "name_done": true
  },
@@ -703,5 +703,10 @@
   "name": "brainpastaOP",
   "name_done": true,
   "cnp": 2
+ },
+ "0x924fcaceae7187629f7974d2f570d5f6cdb20052": {
+  "name": "Reon_07",
+  "name_done": true,
+  "cnp": 15
  }
 }
