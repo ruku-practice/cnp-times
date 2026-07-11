@@ -1,0 +1,47 @@
+[
+ {
+  "date": "2026-07-11",
+  "time": "21:21",
+  "token": "19829",
+  "image": "https://data.cryptoninjapartners.com/images/19829.png",
+  "character": "Orochi",
+  "price_eth": 0.163,
+  "price_jpy": 47454,
+  "from": "0xC06999b25073Ba34a83e215790908eFf930e1f79",
+  "to": "0xaaCb0Cc990DA7F9aeAE32d9a652C3e0AE1647b5f",
+  "tx": "0x6059a8d3f0304c07ac620db2c5de5f6a75c72801e4bf13b8f5bd19c2a8050838",
+  "from_cnp": 54,
+  "to_cnp": 1,
+  "currency": "WETH"
+ },
+ {
+  "date": "2026-07-11",
+  "time": "21:20",
+  "token": "13162",
+  "image": "https://data.cryptoninjapartners.com/towasetsuna/images/210.png",
+  "character": "Towa",
+  "price_eth": 0.167,
+  "price_jpy": 48516,
+  "from": "0xC06999b25073Ba34a83e215790908eFf930e1f79",
+  "to": "0xB5b36460db377194097C2Ff8CEce02F67466b14A",
+  "tx": "0x1b2822ed2ca5f0248d8b9889a47406329869841df053e0ff662560f1ea8de4e0",
+  "from_cnp": 54,
+  "to_cnp": 5,
+  "currency": "WETH"
+ },
+ {
+  "date": "2026-07-11",
+  "time": "21:16",
+  "token": "8971",
+  "image": "https://data.cryptoninjapartners.com/images/8971.png",
+  "character": "Orochi",
+  "price_eth": 0.17,
+  "price_jpy": 49492,
+  "from": "0xC06999b25073Ba34a83e215790908eFf930e1f79",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0xff51d3370f25750e9c44a931c6db675637de5a2a4fb8200c00d9b62374c94628",
+  "from_cnp": 54,
+  "to_cnp": 101,
+  "currency": "WETH"
+ }
+]

@@ -10,7 +10,7 @@
   "name_done": true
  },
  "0x0b4372e936f4c9d86217488ba39b043e77882c25": {
-  "cnp": 100,
+  "cnp": 101,
   "name": "running-mole",
   "name_done": true
  },
@@ -390,7 +390,7 @@
   "name_done": true
  },
  "0xb5b36460db377194097c2ff8cece02f67466b14a": {
-  "cnp": 4,
+  "cnp": 5,
   "name": "saikusu",
   "name_done": true
  },
@@ -708,5 +708,10 @@
   "name": "Reon_07",
   "name_done": true,
   "cnp": 15
+ },
+ "0xaacb0cc990da7f9aeae32d9a652c3e0ae1647b5f": {
+  "name": "Happii",
+  "name_done": true,
+  "cnp": 1
  }
 }
