@@ -1,0 +1,17 @@
+[
+ {
+  "date": "2026-07-12",
+  "time": "17:17",
+  "token": "10796",
+  "image": "https://data.cryptoninjapartners.com/images/10796.png",
+  "character": "Leelee",
+  "price_eth": 0.23,
+  "price_jpy": 66871,
+  "from": "0xd7050D8935EAf6c8CdE04e9d6C5dD99e23FD3d53",
+  "to": "0xa0D8dDC7EC2249C6DF227dB8e6Da21B6Efee7F58",
+  "tx": "0x2dea519f0b60dad8b053e40f6808a699519e23c041accc6e698e7808feb4a679",
+  "from_cnp": 22,
+  "to_cnp": 7,
+  "currency": "ETH"
+ }
+]
