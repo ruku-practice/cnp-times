@@ -1,10 +1,14 @@
 name: Daily CNP news fallback
 
 on:
-  schedule:
-    # 07:00 JST = 22:00 UTC.
-    # Mac local job runs at 06:30 JST. This GitHub Actions job is the web-side fallback.
-    - cron: "0 22 * * *"
+  # === B案（恒久対処 2026-07-12）: news 取得も twikit 2.3.3 の KEY_BYTE バグで失敗するため、
+  # web側フォールバックの自動スケジュールを停止（Mac ローカルの 06:30 JST 取得が正、こちらは壊れた保険）。
+  # 詳細: company/output/2026-07/CI恒久対処_調査レポート.md
+  # 復活させたい場合は下の schedule ブロックのコメントを外す。
+  # schedule:
+  #   # 07:00 JST = 22:00 UTC.
+  #   # Mac local job runs at 06:30 JST. This GitHub Actions job is the web-side fallback.
+  #   - cron: "0 22 * * *"
   workflow_dispatch: {}
 
 permissions:

@@ -3,9 +3,13 @@ name: Daily CNP tweet update
 on:
   repository_dispatch:
     types: [run-daily-tweet]
-  schedule:
-    # フォールバック専用: 朝 5:00 JST = 20:00 UTC (通常の目標は 4:00 JST)
-    - cron: "0 20 * * *"
+  # === B案（恒久対処 2026-07-12）: twikit 2.3.3 の KEY_BYTE バグで投稿が毎日全滅するため、
+  # GitHub Actions での自動スケジュール投稿を停止。X投稿はローカル定期実行へ移設予定。
+  # 詳細: company/output/2026-07/CI恒久対処_調査レポート.md
+  # 復活させたい場合は下の schedule ブロックのコメントを外す（invest リポと同じ dispatch/手動運用に統一）。
+  # schedule:
+  #   # フォールバック専用: 朝 5:00 JST = 20:00 UTC (通常の目標は 4:00 JST)
+  #   - cron: "0 20 * * *"
   workflow_dispatch:
 
 permissions:
