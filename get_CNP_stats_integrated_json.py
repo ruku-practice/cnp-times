@@ -680,47 +680,35 @@ class CNPStatsIntegrated:
             return None
         return name or None
 
-    def _balance_of(self, address):
-        """公開RPCの balanceOf。フォールバック用（実態と乖離することがある）。"""
-        import urllib.request
-        import json as _json
-        data = '0x70a08231' + '0' * 24 + address.lower().replace('0x', '')
-        payload = {"jsonrpc": "2.0", "id": 1, "method": "eth_call",
-                   "params": [{"to": self.cnp_contract, "data": data}, "latest"]}
-        for rpc in ("https://ethereum-rpc.publicnode.com", "https://1rpc.io/eth"):
-            try:
-                req = urllib.request.Request(
-                    rpc, data=_json.dumps(payload).encode(),
-                    headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
-                r = _json.loads(urllib.request.urlopen(req, timeout=12).read())
-                res = r.get("result")
-                if res and res != "0x":
-                    return int(res, 16)
-            except Exception:
-                continue
-        return None
-
     def _cnp_balance(self, address):
         """ウォレットのCNP保有数を返す。balanceOf は実際の所有と乖離することがある
-        （売却後もカウントが残る個体があり、Etherscan/OpenSeaの実表示と食い違う）。
-        そのためEtherscanのトークン保有インベントリ（実数）を第一ソースにし、
-        取得できない場合のみ balanceOf にフォールバックする。APIキー不要。"""
+        （売却後もカウントが残る個体があり、Etherscan/OpenSeaの実表示と食い違う。
+        例: 0x5b2457cf5c02c74aebc184a791cab1b3337bc539 は実保有1体だがbalanceOfは12を返す）。
+        そのためbalanceOfへのフォールバックは廃止し、Etherscanのトークン保有
+        インベントリ（実数）のみを取得する。一時的な失敗を吸収するため最大3回
+        リトライし（待機3秒→8秒）、全て失敗した場合は None を返す
+        （＝保有数は表示しない。古いbalanceOf由来の値をキャッシュに残さない）。
+        APIキー不要。"""
         import urllib.request
         import re as _re
-        try:
-            url = ("https://etherscan.io/token/generic-tokenholder-inventory"
-                   f"?m=normal&contractAddress={self.cnp_contract}&a={address}&p=1")
-            req = urllib.request.Request(url, headers={
-                "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-                               "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
-                "Accept": "text/html"})
-            body = urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace")
-            m = _re.search(r"A total of\s*([\d,]+)\s*tokens?\s*found", body)
-            if m:
-                return int(m.group(1).replace(",", ""))
-        except Exception:
-            pass
-        return self._balance_of(address)
+        url = ("https://etherscan.io/token/generic-tokenholder-inventory"
+               f"?m=normal&contractAddress={self.cnp_contract}&a={address}&p=1")
+        wait_seconds = (3, 8)
+        for attempt in range(3):
+            try:
+                req = urllib.request.Request(url, headers={
+                    "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                                   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
+                    "Accept": "text/html"})
+                body = urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace")
+                m = _re.search(r"A total of\s*([\d,]+)\s*tokens?\s*found", body)
+                if m:
+                    return int(m.group(1).replace(",", ""))
+            except Exception:
+                pass
+            if attempt < 2:
+                time.sleep(wait_seconds[attempt])
+        return None
 
     def _sale_currency(self, tx, seller):
         """売買のtxをオンチェーンで確認し、決済通貨を "WETH" か "ETH" で返す。
@@ -793,8 +781,9 @@ class CNPStatsIntegrated:
                 if c_done >= cnp_cap:
                     break
                 bal = self._cnp_balance(a)
-                if bal is not None:
-                    cache.setdefault(a, {})["cnp"] = bal
+                # 取得失敗（None）でも明示的に上書きする。balanceOf時代の
+                # 誤った過大値をキャッシュに温存しないため。
+                cache.setdefault(a, {})["cnp"] = bal
                 c_done += 1
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w", encoding="utf-8") as f:

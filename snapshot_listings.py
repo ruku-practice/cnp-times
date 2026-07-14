@@ -231,48 +231,43 @@ def owner_of(token_id, memo=None):
     return owner
 
 
-def _balance_of(address):
-    """公開RPCの balanceOf。フォールバック用（実態と乖離することがある）。"""
-    data = "0x70a08231" + "0" * 24 + address.lower().replace("0x", "")
-    res = _eth_call(data)
-    if res:
-        try:
-            return int(res, 16)
-        except ValueError:
-            return None
-    return None
-
-
 _ETHERSCAN_INV_RE = re.compile(r"A total of\s*([\d,]+)\s*tokens?\s*found")
 
 
 def cnp_balance(address):
     """ウォレットのCNP保有数を返す。balanceOf は実際の所有と乖離することがある
-    （売却後もカウントが残る個体があり、pochi_keep で実測3体に対し5を返す例を確認）。
-    そのためEtherscanのトークン保有インベントリ（Etherscan/OpenSeaの表示と一致する実数）を
-    第一ソースにし、取得できない場合のみ balanceOf にフォールバックする。APIキー不要。"""
-    try:
-        url = (
-            "https://etherscan.io/token/generic-tokenholder-inventory"
-            f"?m=normal&contractAddress={CNP_CONTRACT}&a={address}&p=1"
-        )
-        req = urllib.request.Request(
-            url,
-            headers={
-                "User-Agent": (
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-                    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-                ),
-                "Accept": "text/html",
-            },
-        )
-        body = urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace")
-        m = _ETHERSCAN_INV_RE.search(body)
-        if m:
-            return int(m.group(1).replace(",", ""))
-    except Exception:
-        pass
-    return _balance_of(address)
+    （売却後もカウントが残る個体があり、pochi_keep で実測3体に対し5を返す例や、
+    0x5b2457cf5c02c74aebc184a791cab1b3337bc539 が実保有1体なのに12を返す例を確認）。
+    そのためbalanceOfへのフォールバックは廃止し、Etherscanのトークン保有
+    インベントリ（実数）のみを取得する。一時的な失敗を吸収するため最大3回
+    リトライし（待機3秒→8秒）、全て失敗した場合は None を返す（＝保有数は
+    表示しない）。APIキー不要。"""
+    url = (
+        "https://etherscan.io/token/generic-tokenholder-inventory"
+        f"?m=normal&contractAddress={CNP_CONTRACT}&a={address}&p=1"
+    )
+    wait_seconds = (3, 8)
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+                    ),
+                    "Accept": "text/html",
+                },
+            )
+            body = urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace")
+            m = _ETHERSCAN_INV_RE.search(body)
+            if m:
+                return int(m.group(1).replace(",", ""))
+        except Exception:
+            pass
+        if attempt < 2:
+            time.sleep(wait_seconds[attempt])
+    return None
 
 
 def os_name(address):
