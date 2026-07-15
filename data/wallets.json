@@ -1,6 +1,6 @@
 {
  "0x91baa5d55fb5c406516b01cd62951625ebf0b3eb": {
-  "cnp": 593,
+  "cnp": null,
   "name": "ikehaya_cnp",
   "name_done": true
  },
@@ -10,7 +10,7 @@
   "name_done": true
  },
  "0x0b4372e936f4c9d86217488ba39b043e77882c25": {
-  "cnp": 101,
+  "cnp": null,
   "name": "running-mole",
   "name_done": true
  },
@@ -20,17 +20,17 @@
   "name_done": true
  },
  "0x6261cef0b1d4aa5a448e54a94a5ee888ef2ca7d2": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0xad79bbd83092c7b408e24de3ee665ac4b03718ec": {
-  "cnp": 2,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0x4eb4cc3517777317463ac297c86c6fd5fb8780c8": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
@@ -40,7 +40,7 @@
   "name_done": true
  },
  "0xcc38a5d95677cfc77a2b46d2268c3aae5b8d5602": {
-  "cnp": 49,
+  "cnp": null,
   "name": "Notti_ledger",
   "name_done": true
  },
@@ -60,7 +60,7 @@
   "name_done": true
  },
  "0xedae9ec3e28352e74d1b519be088a7b59c891459": {
-  "cnp": 21,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
@@ -70,12 +70,12 @@
   "name_done": true
  },
  "0x79f29d23c77a6a6ff087f6448d54f370f7a199f2": {
-  "cnp": 8,
+  "cnp": null,
   "name": "matabee",
   "name_done": true
  },
  "0xb6fa0108794dc769ef37bddd01d8d1f1b5e80691": {
-  "cnp": 2,
+  "cnp": null,
   "name": "HoneyWa",
   "name_done": true
  },
@@ -100,7 +100,7 @@
   "name_done": true
  },
  "0x74613a82718e3ae88df707f21c659e42a7851153": {
-  "cnp": 0,
+  "cnp": null,
   "name": "2100000",
   "name_done": true
  },
@@ -130,12 +130,12 @@
   "name_done": true
  },
  "0xe04baafd9388961f8aaa34ea6c226ec028119885": {
-  "cnp": 0,
+  "cnp": null,
   "name": "04b988",
   "name_done": true
  },
  "0x4e2fdf615c83abee1be2464415416a8011deab59": {
-  "cnp": 23,
+  "cnp": null,
   "name": "mamecoco0843",
   "name_done": true
  },
@@ -145,42 +145,42 @@
   "name_done": true
  },
  "0xe3cdd53b7a0f48fd7c86953c42cdf976bb26d5a3": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0x3938c6ab63a3d54070fad0c6516579c14b5c9a41": {
-  "cnp": 14,
+  "cnp": null,
   "name": "L8524N1",
   "name_done": true
  },
  "0x35fd8f95576b32f18927c6475706e8e7906dddec": {
-  "cnp": 10,
+  "cnp": null,
   "name": "tanatyu",
   "name_done": true
  },
  "0x14b1b6bb769c584b1f4255bd2bcd928cfc87f852": {
-  "cnp": 6,
+  "cnp": null,
   "name": "ReRe65",
   "name_done": true
  },
  "0x26756a1452807ff053407f2b4940613c1a987d77": {
-  "cnp": 3,
+  "cnp": null,
   "name": "pochi_keep",
   "name_done": true
  },
  "0x493da0cde8cbe456d096d296b88550a703939354": {
-  "cnp": 26,
+  "cnp": null,
   "name": "fuladain",
   "name_done": true
  },
  "0x12d94456564ea6b911b4062f234cac40d9c68a00": {
-  "cnp": 2,
+  "cnp": null,
   "name": "reoiueh",
   "name_done": true
  },
  "0xf15b2d971b9b320d931b5264df47af3b4db82981": {
-  "cnp": 14,
+  "cnp": null,
   "name": "takakisi",
   "name_done": true
  },
@@ -190,7 +190,7 @@
   "name_done": true
  },
  "0xcbc3f8d12bd907a538452e3cb198ac951c36819e": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
@@ -215,7 +215,7 @@
   "name_done": true
  },
  "0x270778e700ff62850e3bc64f81164675b82032b2": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
@@ -225,7 +225,7 @@
   "name_done": true
  },
  "0xe358785448c52aa48295e132ce53f9e6c18f2ba7": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
@@ -240,7 +240,7 @@
   "name_done": true
  },
  "0xd450592e47975f632b9a88dda3a6a4de3a2021dd": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
@@ -250,7 +250,7 @@
   "name_done": true
  },
  "0x1a3326bf12589ee53b3f796c9d376ea3df60d459": {
-  "cnp": 17,
+  "cnp": null,
   "name": "mokayamo",
   "name_done": true
  },
@@ -270,7 +270,7 @@
   "name_done": true
  },
  "0x793cb55b58d7b467a16cc8fe6fd657fc82bfc0ed": {
-  "cnp": 9,
+  "cnp": null,
   "name": "hi64ma3-7-2",
   "name_done": true
  },
@@ -285,7 +285,7 @@
   "name_done": true
  },
  "0x7dcdd213be2a06f80956d2a9d4337d603094dcaf": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
@@ -310,7 +310,7 @@
   "name_done": true
  },
  "0x5580942c7eea4ef2a85a19f565c9e345350db205": {
-  "cnp": 2,
+  "cnp": null,
   "name": "hi64ma3",
   "name_done": true
  },
@@ -340,7 +340,7 @@
   "name_done": true
  },
  "0x01b27ec780c534ba0fab15509354c3798321273c": {
-  "cnp": 8,
+  "cnp": null,
   "name": "hiroHG",
   "name_done": true
  },
@@ -360,67 +360,67 @@
   "name_done": true
  },
  "0x8b08ba2c45e79099116b929c7b25e00eda74735f": {
-  "cnp": 2,
+  "cnp": null,
   "name": "b2a02o3S",
   "name_done": true
  },
  "0xe545c0d41c622bcccc8f103c0607d042a2242350": {
-  "cnp": 167,
+  "cnp": null,
   "name": "ikehaya_JP",
   "name_done": true
  },
  "0x3bc354a74dd3a7b2a41637f0723ffeb2a8ae897d": {
-  "cnp": 2,
+  "cnp": null,
   "name": "HoneyWaTheZen",
   "name_done": true
  },
  "0x8c7c6471fe43ba2c5fab69f3279e3ddf18ca665c": {
-  "cnp": 3,
+  "cnp": null,
   "name": "nukotama",
   "name_done": true
  },
  "0xc06999b25073ba34a83e215790908eff930e1f79": {
-  "cnp": 13,
+  "cnp": null,
   "name": "3E760E",
   "name_done": true
  },
  "0x04131e8d773acf5641f1cd726285ae1a2b3ac3a1": {
-  "cnp": 2,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0xb5b36460db377194097c2ff8cece02f67466b14a": {
-  "cnp": 2,
+  "cnp": null,
   "name": "saikusu",
   "name_done": true
  },
  "0xcb99dbddccc014276b3bd58cd77c4070f2676c2b": {
-  "cnp": 2,
+  "cnp": null,
   "name": "hinata__nft",
   "name_done": true
  },
  "0x8b5bb33db6d3c4fc87a4c20c939afff0544b3236": {
-  "cnp": 6,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0x800579a749d9c8d339e33264331937bbcb2bb1fc": {
-  "cnp": 2,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0x4d62734dfb26b6f26beddb753269e0a632efa169": {
-  "cnp": 1,
+  "cnp": null,
   "name": "Kyu_ns",
   "name_done": true
  },
  "0xe3e3f503fd6f9f2cbef4b46bb76827d46b675202": {
-  "cnp": 1,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0xa2ea851baec8a4d5d68e087a2d2da35bf36f5616": {
-  "cnp": 0,
+  "cnp": null,
   "name": "MAIN-JJJ",
   "name_done": true
  },
@@ -430,12 +430,12 @@
   "name_done": true
  },
  "0x86eb8be678274ba4c47af17fa8511c3f9c631bbc": {
-  "cnp": 0,
+  "cnp": null,
   "name": "NAOnao-Kai",
   "name_done": true
  },
  "0xf9dd7c569cfa1b9df9ca0a695e17f51c48b234c0": {
-  "cnp": 0,
+  "cnp": null,
   "name": "mitsuoo",
   "name_done": true
  },
@@ -445,37 +445,37 @@
   "name_done": true
  },
  "0x33b0c3901d3cf7958f4eea2cabe42e2cfc902ca9": {
-  "cnp": 2,
+  "cnp": null,
   "name": "Meta48Base",
   "name_done": true
  },
  "0x428ebced54f7420cc2c1b0108016364b9d1dd23a": {
-  "cnp": 0,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0x2ad548f48963cc52def7180a2ccaa1feb92468ea": {
-  "cnp": 45,
+  "cnp": null,
   "name": "sanpi_001",
   "name_done": true
  },
  "0x535c3f078daa788728b101a90acfef2b760e597c": {
-  "cnp": 14,
+  "cnp": null,
   "name": "Suzuki-nft",
   "name_done": true
  },
  "0xb4c2cfa9e495c326b65d5d79bbe73c067e0e10bc": {
-  "cnp": 2,
+  "cnp": null,
   "name": "Hiro_Nexton2",
   "name_done": true
  },
  "0x10dc01f32f47d1f6c9cade139c0f8301b54c75b7": {
-  "cnp": 0,
+  "cnp": null,
   "name": "baro91",
   "name_done": true
  },
  "0xde8b4b9ac759d1665f36f0a8462960b1170df29f": {
-  "cnp": 0,
+  "cnp": null,
   "name": "snowbozz",
   "name_done": true
  },
@@ -485,12 +485,12 @@
   "name_done": true
  },
  "0xfe23b7ac4b333d7b9815fa6f930add2a0b117795": {
-  "cnp": 7,
+  "cnp": null,
   "name": "yamadakusomilk",
   "name_done": true
  },
  "0x2a8eb3ad40cb8073a8cc6625b318f53ae86dbcd9": {
-  "cnp": 25,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
@@ -505,47 +505,47 @@
   "name_done": true
  },
  "0x9e48a722a8b0fac1f140d6fafc9c7167d34a7891": {
-  "cnp": 14,
+  "cnp": null,
   "name": "patti_sidejob",
   "name_done": true
  },
  "0x7de089bcab7ef6fca1e9f525090c1999174aeeaf": {
-  "cnp": 0,
+  "cnp": null,
   "name": "CryptoPapaz",
   "name_done": true
  },
  "0x277b6c5f468cf9aeadb27b21b4111d231f562f77": {
-  "cnp": 1,
+  "cnp": null,
   "name": "Kaoru-no-takaramono",
   "name_done": true
  },
  "0x1a0ab2a8577fd4385e0b30474507572d92072151": {
-  "cnp": 1,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0x87481851f2cacfff8763f49bff57e7afe3ab87dc": {
-  "cnp": 3,
+  "cnp": null,
   "name": "Chani_JP",
   "name_done": true
  },
  "0xb5bf2a1e1c6b36db85974385cb79ec3fb1f635b7": {
-  "cnp": 3,
+  "cnp": null,
   "name": "Ogurin_sub",
   "name_done": true
  },
  "0x894c9b2ed4ba79e9a75760fa4047e46d0a671d19": {
-  "cnp": 2,
+  "cnp": null,
   "name": "shiro-jp",
   "name_done": true
  },
  "0x46982bbcd8356e1f7c2e19e80e7456f656598338": {
-  "cnp": 0,
+  "cnp": null,
   "name": "ytlapmunjm",
   "name_done": true
  },
  "0x91d64f967c0c61949f8e226032275c7246919d0b": {
-  "cnp": 0,
+  "cnp": null,
   "name": "matsuru",
   "name_done": true
  },
@@ -615,7 +615,7 @@
   "name_done": true
  },
  "0x4863598192ee33199dce6b29770e7272fa3e7ae2": {
-  "cnp": 3,
+  "cnp": null,
   "name": "Yuki_1018",
   "name_done": true
  },
@@ -640,88 +640,88 @@
   "name_done": true
  },
  "0x0e8e1d77a1d468f8d73cd63b1ff0f3bf389251d4": {
-  "cnp": 58,
+  "cnp": null,
   "name": "masatoshi-i",
   "name_done": true
  },
  "0x27f62ab17fd7fd865a9971dbda453b37fbef762b": {
-  "cnp": 1,
+  "cnp": null,
   "name": "y_o_s_h_i",
   "name_done": true
  },
  "0x54ff6f938670cfcede018c40185254ed81c904c3": {
-  "cnp": 17,
+  "cnp": null,
   "name": "7u1-niwatori",
   "name_done": true
  },
  "0x0dae8e895fb3e9b776a0bec74355021200d8206b": {
-  "cnp": 3,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0x5e435babb2c41d2c84d2c4285f0cc4032c553a33": {
-  "cnp": 1,
+  "cnp": null,
   "name": "grichan",
   "name_done": true
  },
  "0x0749f45f55dd3b2610e6a666c424ae72cff9d215": {
-  "cnp": 1,
+  "cnp": null,
   "name": null,
   "name_done": true
  },
  "0x1bfa78728350e396991326e147aca490b1c62a75": {
   "name": "kensaku",
   "name_done": true,
-  "cnp": 0
+  "cnp": null
  },
  "0xefbb2d23d2819fdf9ba55dd3b4ab178fe05920f3": {
   "name": "shimamari7",
   "name_done": true,
-  "cnp": 5
+  "cnp": null
  },
  "0xda89cc30d12b429397166a15ea7ddb311beccdf9": {
   "name": "oaksyn",
   "name_done": true,
-  "cnp": 0
+  "cnp": null
  },
  "0x343469bd867aa84002e73923e6ece43574abb151": {
   "name": null,
   "name_done": true,
-  "cnp": 8
+  "cnp": null
  },
  "0x5fbf3b09e106f2eb11de9efaf3544e25ff0a7d8d": {
   "name": "aofutaba",
   "name_done": true,
-  "cnp": 0
+  "cnp": null
  },
  "0x9398e89aeb10e6fc778098539a58f53b145601f9": {
   "name": "MCC_AZ",
   "name_done": true,
-  "cnp": 1
+  "cnp": null
  },
  "0x94aa50fe3c1ad32b0419004eee4f278ca3908876": {
   "name": "brainpastaOP",
   "name_done": true,
-  "cnp": 0
+  "cnp": null
  },
  "0x924fcaceae7187629f7974d2f570d5f6cdb20052": {
   "name": "Reon_07",
   "name_done": true,
-  "cnp": 14
+  "cnp": null
  },
  "0xaacb0cc990da7f9aeae32d9a652c3e0ae1647b5f": {
   "name": "Happii",
   "name_done": true,
-  "cnp": 1
+  "cnp": null
  },
  "0xa0d8ddc7ec2249c6df227db8e6da21b6efee7f58": {
   "name": "kayaya",
   "name_done": true,
-  "cnp": 7
+  "cnp": null
  },
  "0xd7050d8935eaf6c8cde04e9d6c5dd99e23fd3d53": {
   "name": "hiyokoEX",
   "name_done": true,
-  "cnp": 17
+  "cnp": null
  }
 }
