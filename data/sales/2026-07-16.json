@@ -1,0 +1,17 @@
+[
+ {
+  "date": "2026-07-16",
+  "time": "00:32",
+  "token": "22218",
+  "image": "https://data.cryptoninjapartners.com/images/22218.png",
+  "character": "Mitama",
+  "price_eth": 0.172,
+  "price_jpy": 53604,
+  "from": "0x12d94456564Ea6B911b4062f234cAc40d9C68A00",
+  "to": "0x7cCbB71Dab7b20ca4FDA8c0A6edae3262D7994A6",
+  "tx": "0x10e0ca9178c5f5f2939e623dda7405e382538878f94b4662d7411205da467cd0",
+  "from_cnp": null,
+  "to_cnp": null,
+  "currency": "WETH"
+ }
+]
