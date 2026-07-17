@@ -556,6 +556,21 @@
  },
  {
   "date": "2026-06-09",
+  "time": "00:55",
+  "token": null,
+  "image": null,
+  "character": "Orochi",
+  "price_eth": 0.139,
+  "price_jpy": 38213,
+  "from": "0x5b2457cF5c02c74AEBC184A791cAb1b3337bC539",
+  "to": "0xaD79bbd83092c7B408E24De3ee665AC4b03718ec",
+  "tx": "0x7d5ea92ba946a72cbf9ca68c76e5798f1246ce0c59c15c1dcdcb65262e57ebad",
+  "from_cnp": 1,
+  "to_cnp": 2,
+  "currency": "ETH"
+ },
+ {
+  "date": "2026-06-09",
   "time": "00:54",
   "token": "7433",
   "image": "https://data.cryptoninjapartners.com/towasetsuna/images/48.png",
