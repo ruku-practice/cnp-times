@@ -20,6 +20,14 @@ get_CNP_stats_integrated_json.py
         └─ snapshots/YYYY-MM-DD.json … その日のフル表スナップショット（過去日再現用）
 ```
 
+## 最安リストトップ10の保有数
+
+限定ページの最安リストトップ10は `snapshot_listings.py` が生成する。
+ウォレットのCNP保有数はOpenSeaのウォレット画面（CNPコレクション絞り込み）から取得し、
+一時的な失敗時はウォレットごとに最大3回リトライする。Chromiumは全ウォレットで再利用し、
+取得不能時は誤値を出さず `null` と失敗理由を残す。現在地は
+[[ruku_data/00_products/cnp-times/progress.md|進捗ログ]] を参照。
+
 ## 自動更新
 
 - `.github/workflows/daily.yml` は日次本体の更新用。
