@@ -1,0 +1,17 @@
+[
+ {
+  "date": "2026-07-18",
+  "time": "20:33",
+  "token": "24618",
+  "image": "https://data.cryptoninjapartners.com/emataruto/images/432.png",
+  "character": "Taruto",
+  "price_eth": 0.165,
+  "price_jpy": 49412,
+  "from": "0x1A953BC7e8668B031d3dFC351cC3052aA264bd10",
+  "to": "0x0B4372e936f4C9d86217488Ba39b043e77882C25",
+  "tx": "0xc23ec0ad554e05052fca8c3b52a2cad906e8d488af9d9643f4c3908297aef424",
+  "from_cnp": null,
+  "to_cnp": null,
+  "currency": "WETH"
+ }
+]
