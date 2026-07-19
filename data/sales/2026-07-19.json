@@ -1,0 +1,17 @@
+[
+ {
+  "date": "2026-07-19",
+  "time": "13:57",
+  "token": "21457",
+  "image": "https://data.cryptoninjapartners.com/images/21457.png",
+  "character": "Narukami",
+  "price_eth": 0.165,
+  "price_jpy": 50087,
+  "from": "0xCA7fa236439dec90Fd0AF0aAfA878D3E882BBd8c",
+  "to": "0xB5b36460db377194097C2Ff8CEce02F67466b14A",
+  "tx": "0xfccad87ac4c64b5ac713d4a886cc43190f3bf274c26010e01143249003555e82",
+  "from_cnp": null,
+  "to_cnp": null,
+  "currency": "WETH"
+ }
+]
