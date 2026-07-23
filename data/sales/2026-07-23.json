@@ -1,0 +1,17 @@
+[
+ {
+  "date": "2026-07-23",
+  "time": "12:57",
+  "token": "7535",
+  "image": "https://data.cryptoninjapartners.com/images/7535.png",
+  "character": "Mitama",
+  "price_eth": 0.18,
+  "price_jpy": 56567,
+  "from": "0xda8Efb8a0F993CE85d4dC53E8D98Bb83f87a8e71",
+  "to": "0x477D40e5ee89824497D0B8596da59465a53aB637",
+  "tx": "0x13f5a0c17d21deb74f72f3dfdbd6584566d97a5df4466681df2856b2d03a230f",
+  "from_cnp": null,
+  "to_cnp": null,
+  "currency": "ETH"
+ }
+]
